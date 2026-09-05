@@ -4,13 +4,13 @@
 - [x] **Integration**: Use `image_picker` to select the screenshot, run it through the existing ML Kit OCR pipeline, and forward it to `ReviewPage` as Evidence.
 
 # Phase 6: Barcode / QR Identification (Section 26)
-- [ ] **Barcode Scanner UI**: Add a "Scan Barcode" button in the App.
-- [ ] **ML Kit Integration**: Integrate Google ML Kit Barcode Scanning API to quickly fetch basic product metadata (Brand, Name) before doing OCR on the label.
+- [x] **Barcode Scanner UI**: Add a "Scan Barcode" button in the App.
+- [x] **ML Kit Integration**: Integrate Google ML Kit Barcode Scanning API to quickly fetch basic product metadata (Brand, Name) before doing OCR on the label.
 
 # Phase 7: Reporting & PDF Generation (Section 27)
-- [ ] **PDF Generator Service**: Use Flutter's `pdf` or `printing` package to generate an A4 size "Inspection Summary" report.
-- [ ] **Report Structure**: Include Inspection Details, Product Information, Evidence Images, Extracted Declarations, Rule-wise Compliance, and Officer Decision.
-- [ ] **Export Options**: Add a "Download PDF" button in both the Flutter App's `HistoryPage` and the Next.js Web Dashboard.
+- [x] **PDF Generator Service**: Use Flutter's `pdf` or `printing` package to generate an A4 size "Inspection Summary" report.
+- [x] **Report Structure**: Include Inspection Details, Product Information, Evidence Images, Extracted Declarations, Rule-wise Compliance, and Officer Decision.
+- [x] **Export Options**: Add a "Download PDF" button in both the Flutter App's `HistoryPage` and the Next.js Web Dashboard.
 
 # Phase 8: Advanced Web Dashboard (Section 28)
 - [ ] **Analytics Overview**: Build graphical charts on the Next.js dashboard for Total Inspections (Passed vs Failed vs Manual Review).

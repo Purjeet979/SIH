@@ -112,8 +112,6 @@ class _BarcodePageState extends State<BarcodePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Scan Barcode'),
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
       ),
       body: Stack(
         fit: StackFit.expand,
@@ -130,20 +128,35 @@ class _BarcodePageState extends State<BarcodePage> {
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.black54,
-                borderRadius: BorderRadius.circular(8),
+                color: Colors.white.withOpacity(0.9),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: Colors.grey.shade300),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4))
+                ],
               ),
-              child: Text(
-                _status,
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.info_outline, size: 16, color: Colors.blue),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      _status,
+                      style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w600, fontSize: 13),
+                      textAlign: TextAlign.center,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
 
           if (_isProcessing)
             Container(
-              color: Colors.black54,
+              color: Colors.white.withOpacity(0.8),
               child: const Center(
                 child: CircularProgressIndicator(color: Colors.blue),
               ),
@@ -152,10 +165,14 @@ class _BarcodePageState extends State<BarcodePage> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: _isCameraInitialized && !_isProcessing
-          ? FloatingActionButton.large(
+          ? FloatingActionButton.extended(
               onPressed: _captureAndAnalyze,
-              backgroundColor: Colors.white,
-              child: const Icon(Icons.qr_code_scanner, color: Colors.black, size: 40),
+              backgroundColor: Colors.blue.shade600,
+              foregroundColor: Colors.white,
+              elevation: 4,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+              icon: const Icon(Icons.qr_code_scanner, size: 24),
+              label: const Text('Capture', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             )
           : null,
     );

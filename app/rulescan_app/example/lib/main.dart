@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'home_page.dart';
+import 'theme.dart';
+import 'landing_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,8 +13,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'RuleScan App',
-      theme: ThemeData(primarySwatch: Colors.blueGrey, useMaterial3: true),
-      home: const HomePage(),
+      theme: AppTheme.lightTheme,
+      home: const LandingPage(),
     );
   }
 }

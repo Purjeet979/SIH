@@ -40,7 +40,7 @@ class SyncService {
     
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.5:3001/api/sync'),
+        Uri.parse('http://192.168.1.35:3001/api/sync'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'inspections': payload}),
       ).timeout(const Duration(seconds: 5));
