@@ -1,15 +1,17 @@
 const { Engine } = require('json-rules-engine');
 const path = require('path');
-const { buildEngineRules } = require('./json_adapter');
+const fs = require('fs');
 
 async function runRules(category, facts) {
     const engine = new Engine();
     
     // Load dynamic JSON rules
+    // For production, we load from rules/base.json, but it is now the universal format
     const basePath = path.join(__dirname, 'rules', 'base.json');
     try {
-        const rules = buildEngineRules(basePath);
-        rules.forEach(rule => engine.addRule(rule));
+        const rawData = fs.readFileSync(basePath, 'utf8');
+        const data = JSON.parse(rawData);
+        data.rules.forEach(rule => engine.addRule(rule));
     } catch (e) {
         throw new Error(`Failed to load or parse base.json rules: ${e.message}`);
     }

@@ -1,0 +1,32 @@
+name: Rule Engine Sync Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-dart-engine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      - run: flutter pub get
+        working-directory: ./app/rulescan_app/example
+      - run: flutter test test/rule_engine_test.dart test/fact_extractor_test.dart
+        working-directory: ./app/rulescan_app/example
+
+  test-node-engine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - run: npm install
+        working-directory: ./backend/rule-engine
+      - run: node test_engine.js
+        working-directory: ./backend/rule-engine

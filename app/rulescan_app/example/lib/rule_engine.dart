@@ -20,6 +20,12 @@ class Violation {
 class RuleEngine {
   List<dynamic> _rules = [];
 
+  // Exposed for unit testing with shared fixtures
+  void setRulesFromJson(String jsonString) {
+    final data = jsonDecode(jsonString);
+    _rules = data['rules'] as List<dynamic>;
+  }
+
   Future<void> loadRules() async {
     try {
       final jsonString = await rootBundle.loadString('assets/base.json');
@@ -32,34 +38,74 @@ class RuleEngine {
 
   List<Violation> evaluate(Map<String, dynamic> facts) {
     List<Violation> violations = [];
-    String category = facts['category'] ?? 'other';
-
-    for (var r in _rules) {
-      String? field = r['field'];
-      bool isRequired = r['required'] == true;
-      String? condition = r['condition'];
+    
+    for (var rule in _rules) {
+      if (!rule.containsKey('conditions') || !rule['conditions'].containsKey('all')) continue;
       
-      bool factValue = field != null ? facts[field] == true : true;
+      List<dynamic> conditions = rule['conditions']['all'];
+      bool allConditionsMet = true;
 
-      // 1. Unconditionally required fields
-      if (isRequired) {
-        if (!factValue) {
-          violations.add(_createViolation(r));
+      for (var cond in conditions) {
+        String factName = cond['fact'];
+        String op = cond['operator'];
+        dynamic expectedValue = cond['value'];
+        dynamic actualValue = facts[factName];
+
+        // If fact is totally missing from input, treat booleans as true by default, else null
+        if (actualValue == null && expectedValue is bool) {
+           actualValue = true; // Rule engine assumption: fields exist unless explicitly flagged false
+           // Wait, for rule engine, if we pass missing MRP, actualValue is null.
+           // In JS, missing is undefined.
         }
-      } 
-      // 2. Conditionally required fields
-      else if (condition != null) {
-        if (condition == 'applies_to_cosmetics_toiletries_categories' && category == 'cosmetics_toiletries') {
-          if (!factValue) {
-            violations.add(_createViolation(r));
+
+        bool condMet = false;
+        bool isBorderline = false;
+        switch (op) {
+          case 'equal':
+            condMet = (actualValue == expectedValue);
+            break;
+          case 'notEqual':
+            condMet = (actualValue != expectedValue);
+            break;
+          case 'lessThan':
+            if (actualValue is num && expectedValue is num) {
+              condMet = actualValue < expectedValue;
+              if (!condMet && (actualValue - expectedValue) <= 0.2) {
+                 isBorderline = true;
+              }
+            }
+            break;
+          case 'greaterThanInclusive':
+            if (actualValue is num && expectedValue is num) {
+              condMet = actualValue >= expectedValue;
+              if (!condMet && (expectedValue - actualValue) <= 0.2) {
+                 isBorderline = true;
+              }
+            }
+            break;
+        }
+
+        if (!condMet) {
+          allConditionsMet = false;
+          // If we failed a font height check marginally, we don't break, we let it fail 
+          // but we track that it was borderline.
+          if (isBorderline && factName == 'font_height_mm') {
+            rule['_isBorderline'] = true;
           }
+          break; // Stop evaluating this rule's conditions
         }
-        else if (condition == 'applies_if_perishable' && category == 'packaged_food') {
-          if (!factValue) {
-            violations.add(_createViolation(r));
-          }
-        }
-        // Add more specific conditions based on base.json logic as needed
+      }
+
+      if (allConditionsMet && rule.containsKey('event')) {
+        violations.add(_createViolation(rule['event']['params']));
+      } else if (!allConditionsMet && rule['_isBorderline'] == true) {
+        // Advisory flag
+        Map<String, dynamic> params = Map.from(rule['event']['params']);
+        params['severity'] = 'warning';
+        params['title'] = '[ADVISORY] ${params['title']}';
+        params['description'] = '${params['description']} (Borderline measurement. Verify manually)';
+        violations.add(_createViolation(params));
+        rule['_isBorderline'] = false; // reset
       }
     }
     

@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
+import 'dart:ui' as ui;
+import 'dart:math';
 import 'rule_engine.dart';
 import 'db_helper.dart';
 import 'fact_extractor.dart';
+import 'ocr_data.dart';
+
 class ReviewPage extends StatefulWidget {
   final String ocrText;
   final String? imagePath;
   final String? barcode;
+  final List<OcrBlock>? ocrBlocks;
 
-  const ReviewPage({super.key, required this.ocrText, this.imagePath, this.barcode});
+  const ReviewPage({super.key, required this.ocrText, this.imagePath, this.barcode, this.ocrBlocks});
 
   @override
   State<ReviewPage> createState() => _ReviewPageState();
@@ -19,6 +25,12 @@ class _ReviewPageState extends State<ReviewPage> {
   List<Violation> _violations = [];
   Map<String, dynamic> _facts = {};
   bool _isLoading = true;
+  
+  // Tap-to-Measure State
+  ui.Image? _rawImage;
+  Offset? _tap1;
+  Offset? _tap2;
+  double? _pixelsPerMm = 7.0; // Default estimate for 15cm distance
 
   final List<String> _categories = [
     'packaged_food',
@@ -39,12 +51,16 @@ class _ReviewPageState extends State<ReviewPage> {
   }
 
   Future<void> _initEngine() async {
+    if (widget.imagePath != null) {
+      final bytes = await File(widget.imagePath!).readAsBytes();
+      _rawImage = await decodeImageFromList(bytes);
+    }
     await _engine.loadRules();
     _evaluateRules();
   }
 
   void _evaluateRules() {
-    Map<String, dynamic> facts = FactExtractor.extractFacts(widget.ocrText);
+    Map<String, dynamic> facts = FactExtractor.extractFacts(widget.ocrText, widget.ocrBlocks ?? [], pixelsPerMm: _pixelsPerMm);
     facts['category'] = _selectedCategory; // Override with user selection
 
     setState(() {
@@ -77,7 +93,7 @@ class _ReviewPageState extends State<ReviewPage> {
       ),
       body: _isLoading 
         ? const Center(child: CircularProgressIndicator())
-        : Padding(
+        : SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -91,6 +107,14 @@ class _ReviewPageState extends State<ReviewPage> {
                       avatar: const Icon(Icons.qr_code_scanner),
                     ),
                   ),
+                if (widget.imagePath != null && _rawImage != null)
+                  ExpansionTile(
+                    title: const Text('Optional: Precise Font Calibration', style: TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: const Text('Default assumes 15cm photo distance.'),
+                    initiallyExpanded: false,
+                    children: [ _buildTapToMeasureUI() ],
+                  ),
+                const SizedBox(height: 16),
                 const Text(
                   'Extracted Text (OCR)', 
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
@@ -144,6 +168,11 @@ class _ReviewPageState extends State<ReviewPage> {
                     if (_facts['net_quantity_value'] != null) Chip(label: Text('Qty: ${_facts['net_quantity_value']}'), backgroundColor: Colors.blue.shade100),
                     if (_facts['manufacture_date_value'] != null) Chip(label: Text('Mfg: ${_facts['manufacture_date_value']}'), backgroundColor: Colors.orange.shade100),
                     if (_facts['best_before_or_use_by_value'] != null) Chip(label: Text('Exp: ${_facts['best_before_or_use_by_value']}'), backgroundColor: Colors.red.shade100),
+                    if (_facts['font_height_mm'] != null && _facts['font_height_mm'] > 0)
+                      Chip(
+                        label: Text('Font Height: ${_facts['font_height_mm'].toStringAsFixed(2)} mm'),
+                        backgroundColor: Colors.purple.shade100,
+                      ),
                   ],
                 ),
                 const SizedBox(height: 24),
@@ -164,24 +193,20 @@ class _ReviewPageState extends State<ReviewPage> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                Expanded(
-                  child: _violations.isEmpty
-                    ? const Center(child: Text("All declarations present!"))
-                    : ListView.builder(
-                        itemCount: _violations.length,
-                        itemBuilder: (context, index) {
-                          final v = _violations[index];
-                          return Card(
-                            color: Colors.red.shade50,
-                            child: ListTile(
-                              leading: const Icon(Icons.warning, color: Colors.red),
-                              title: Text("${v.ruleNumber}: ${v.title}"),
-                              subtitle: Text(v.description),
-                            ),
-                          );
-                        },
-                      ),
-                ),
+                if (_violations.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16.0),
+                    child: Center(child: Text("All declarations present!", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold))),
+                  )
+                else
+                  ..._violations.map((v) => Card(
+                        color: Colors.red.shade50,
+                        child: ListTile(
+                          leading: const Icon(Icons.warning, color: Colors.red),
+                          title: Text("${v.ruleNumber}: ${v.title}"),
+                          subtitle: Text(v.description),
+                        ),
+                      )).toList(),
                 const SizedBox(height: 16),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -194,6 +219,87 @@ class _ReviewPageState extends State<ReviewPage> {
               ],
             ),
           ),
+    );
+  }
+
+  Widget _buildTapToMeasureUI() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Text(
+          'Tap the two edges of an ID Card (85.6mm)',
+          style: TextStyle(fontWeight: FontWeight.bold),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 8),
+        Container(
+          height: 250,
+          decoration: BoxDecoration(border: Border.all(color: Colors.grey)),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              double scale = min(constraints.maxWidth / _rawImage!.width, constraints.maxHeight / _rawImage!.height);
+              double displayWidth = _rawImage!.width * scale;
+              double displayHeight = _rawImage!.height * scale;
+
+              return Center(
+                child: GestureDetector(
+                  onTapDown: (details) {
+                    setState(() {
+                      Offset rawTap = details.localPosition / scale;
+                      if (_tap1 == null) {
+                        _tap1 = rawTap;
+                      } else if (_tap2 == null) {
+                        _tap2 = rawTap;
+                        double dx = _tap1!.dx - _tap2!.dx;
+                        double dy = _tap1!.dy - _tap2!.dy;
+                        double distPixels = sqrt(dx * dx + dy * dy);
+                        _pixelsPerMm = distPixels / 85.6;
+                        _evaluateRules();
+                      } else {
+                        _tap1 = rawTap;
+                        _tap2 = null;
+                        _pixelsPerMm = 7.0; // reset to default
+                        _evaluateRules();
+                      }
+                    });
+                  },
+                  child: Stack(
+                    children: [
+                      Image.file(
+                        File(widget.imagePath!),
+                        width: displayWidth,
+                        height: displayHeight,
+                        fit: BoxFit.contain,
+                      ),
+                      if (_tap1 != null)
+                        Positioned(
+                          left: _tap1!.dx * scale - 5,
+                          top: _tap1!.dy * scale - 5,
+                          child: const Icon(Icons.circle, size: 10, color: Colors.red),
+                        ),
+                      if (_tap2 != null)
+                        Positioned(
+                          left: _tap2!.dx * scale - 5,
+                          top: _tap2!.dy * scale - 5,
+                          child: const Icon(Icons.circle, size: 10, color: Colors.red),
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        if (_pixelsPerMm != null)
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              'Calibration set: ${_pixelsPerMm!.toStringAsFixed(1)} px/mm',
+              style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+          )
+      ],
     );
   }
 }

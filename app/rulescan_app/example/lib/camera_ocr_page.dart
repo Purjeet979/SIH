@@ -5,6 +5,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'review_page.dart';
+import 'ocr_data.dart';
 
 class CameraOcrPage extends StatefulWidget {
   final String searchText;
@@ -76,13 +77,23 @@ class _CameraOcrPageState extends State<CameraOcrPage> {
       final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
       
       String allText = recognizedText.text;
+      
+      List<OcrBlock> blocks = recognizedText.blocks.map((b) => OcrBlock(
+        text: b.text,
+        boundingBox: b.boundingBox,
+        lines: b.lines.map((l) => OcrLine(
+          text: l.text,
+          boundingBox: l.boundingBox
+        )).toList(),
+      )).toList();
+
       textRecognizer.close();
       
       if (mounted) {
         // 3. Navigate directly to Review Page
         Navigator.pushReplacement(
           context, 
-          MaterialPageRoute(builder: (_) => ReviewPage(ocrText: allText, imagePath: tempFilePath, barcode: widget.barcode))
+          MaterialPageRoute(builder: (_) => ReviewPage(ocrText: allText, imagePath: tempFilePath, barcode: widget.barcode, ocrBlocks: blocks))
         );
       }
     } catch (e) {

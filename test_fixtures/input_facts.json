@@ -1,0 +1,64 @@
+{
+  "test_cases": [
+    {
+      "id": "case_1_compliant_food",
+      "facts": {
+        "category": "packaged_food",
+        "mrp": true,
+        "best_before_or_use_by": true,
+        "veg_nonveg_mark": true,
+        "pdp_area_cm2": 100.0,
+        "font_height_mm": 2.5
+      },
+      "expected_violations": []
+    },
+    {
+      "id": "case_2_non_perishable_negative_case",
+      "facts": {
+        "category": "electronics",
+        "mrp": true,
+        "best_before_or_use_by": false, 
+        "veg_nonveg_mark": false, 
+        "pdp_area_cm2": 100.0,
+        "font_height_mm": 2.5
+      },
+      "expected_violations": []
+    },
+    {
+      "id": "case_3_rule7_boundary_fail_medium",
+      "facts": {
+        "category": "cosmetics_toiletries",
+        "mrp": true,
+        "best_before_or_use_by": false,
+        "veg_nonveg_mark": false, 
+        "pdp_area_cm2": 50.0, 
+        "font_height_mm": 1.9
+      },
+      "expected_violations": ["rule_7_medium"]
+    },
+    {
+      "id": "case_4_rule7_boundary_pass_small",
+      "facts": {
+        "category": "cosmetics_toiletries",
+        "mrp": true,
+        "best_before_or_use_by": false,
+        "veg_nonveg_mark": false,
+        "pdp_area_cm2": 49.9,
+        "font_height_mm": 1.9
+      },
+      "expected_violations": []
+    },
+    {
+      "id": "case_5_multiple_violations",
+      "facts": {
+        "category": "packaged_food",
+        "mrp": false,
+        "best_before_or_use_by": false,
+        "veg_nonveg_mark": false,
+        "pdp_area_cm2": 30.0,
+        "font_height_mm": 0.8
+      },
+      "expected_violations": ["rule_6_1_e", "rule_6_1_da", "veg_mark", "rule_7_small"]
+    }
+  ]
+}
