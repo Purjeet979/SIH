@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_ocr_kit/flutter_ocr_kit.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'review_page.dart';
 
 class CameraOcrPage extends StatefulWidget {
@@ -69,10 +69,13 @@ class _CameraOcrPageState extends State<CameraOcrPage> {
       final XFile file = await _cameraController!.takePicture();
       tempFilePath = file.path;
 
-      // 2. Run OCR ONCE
-      final result = await OcrKit.recognizeNative(file.path);
+      // 2. Run Google ML Kit Text Recognition (Latin first to prevent model-download crash)
+      final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
+      final inputImage = InputImage.fromFilePath(file.path);
+      final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
       
-      String allText = result.results.map((e) => e.text).join(" ");
+      String allText = recognizedText.text;
+      textRecognizer.close();
       
       if (mounted) {
         // 3. Navigate directly to Review Page

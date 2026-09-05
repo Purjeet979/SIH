@@ -67,7 +67,12 @@ class HomePage extends StatelessWidget {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Starting Background Sync...')),
                 );
-                await SyncService.syncOfflineData();
+                String result = await SyncService.syncOfflineData();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(result), duration: const Duration(seconds: 5)),
+                  );
+                }
               },
             ),
           ],

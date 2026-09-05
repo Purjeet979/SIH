@@ -6,40 +6,33 @@ class SyncService {
   
   // This is a placeholder for Stage 07 Background Sync
   // In Phase 3, this will be wired to a WorkManager background task
-  static Future<void> syncOfflineData() async {
+  static Future<String> syncOfflineData() async {
     print("--- Starting Offline Sync ---");
     final unsynced = await DBHelper.instance.getUnsyncedInspections();
     
     if (unsynced.isEmpty) {
-      print("No unsynced inspections found.");
-      return;
+      return "No unsynced records found. Everything is up to date!";
     }
     
-    print("Found ${unsynced.length} unsynced records.");
-    
-    for (var record in unsynced) {
-      int id = record['id'];
+    try {
+      final response = await http.post(
+        Uri.parse('http://192.168.1.5:3001/api/sync'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'inspections': unsynced}),
+      ).timeout(const Duration(seconds: 5));
       
-      // MOCK API CALL
-      try {
-        print("Mock uploading record $id to backend...");
-        // final response = await http.post(
-        //   Uri.parse('https://your-backend.com/api/sync'),
-        //   headers: {'Content-Type': 'application/json'},
-        //   body: jsonEncode(record),
-        // );
-        
-        // Simulate network delay
-        await Future.delayed(Duration(milliseconds: 500));
-        
-        // If successful
-        await DBHelper.instance.markAsSynced(id);
-        print("Record $id synced successfully!");
-        
-      } catch (e) {
-        print("Failed to sync record $id: $e");
+      if (response.statusCode == 200) {
+        final resData = jsonDecode(response.body);
+        if (resData['success'] == true) {
+            for (var record in unsynced) {
+                await DBHelper.instance.markAsSynced(record['id']);
+            }
+            return "✅ Successfully synced ${resData['inserted']} records to Dashboard!";
+        }
       }
+      return "❌ Server error: ${response.statusCode}";
+    } catch (e) {
+      return "❌ Network Error (Firewall blocking?): $e";
     }
-    print("--- Sync Complete ---");
   }
 }

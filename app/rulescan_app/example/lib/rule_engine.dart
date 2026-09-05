@@ -35,11 +35,11 @@ class RuleEngine {
     String category = facts['category'] ?? 'other';
 
     for (var r in _rules) {
-      String field = r['field'];
+      String? field = r['field'];
       bool isRequired = r['required'] == true;
       String? condition = r['condition'];
       
-      bool factValue = facts[field] == true;
+      bool factValue = field != null ? facts[field] == true : true;
 
       // 1. Unconditionally required fields
       if (isRequired) {

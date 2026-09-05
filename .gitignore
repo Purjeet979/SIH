@@ -7,6 +7,16 @@
 **/build/
 **/app.dill
 **/*.dill
+**/*.db
+*.sqlite3
+
+# Logs and Crash dumps
+*.log
+crash*.txt
+
+# Build Artifacts
+*.apk
+*.aabll
 **/*.swp
 **/.idea/
 **/.vscode/
