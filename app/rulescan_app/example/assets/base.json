@@ -1,242 +1,59 @@
 {
-  "category": "base",
-  "version": 1,
-  "last_updated": "2025-01-01",
-  "source": {
-    "title": "The Legal Metrology (Packaged Commodities) Rules, 2011 (with all amendments)",
-    "publisher": "Ministry of Consumer Affairs, Food and Public Distribution, Department of Consumer Affairs",
-    "reference": "GSR 202(E) dated 7th March 2011, as amended up to GSR 226(E) dated 28.3.2022",
-    "url": "https://consumeraffairs.gov.in/pages/legal-metrology-act"
-  },
-  "applicability": {
-    "excludes": [
-      "packages containing quantity of more than 25 kg or 25 litre (except cement, fertilizer and agricultural farm produce sold in bags above 50 kg)",
-      "packaged commodities meant for industrial consumers or institutional consumers",
-      "packages with net weight/measure of 10 g or 10 ml or less (except tobacco and tobacco products)",
-      "fast food items packed by restaurant or hotel"
-    ],
-    "note": "MVP scope covers only retail packages of food and FMCG categories."
-  },
   "rules": [
     {
-      "rule_id": "rule_6_1_a",
-      "rule_number": "6(1)(a)",
-      "title": "Manufacturer / packer / importer details",
-      "description": "Name and address of the manufacturer. If manufacturer is not the packer, name and address of both manufacturer and packer. For imported packages, name and address of the importer.",
-      "check_type": "presence",
-      "field": "manufacturer_address",
-      "required": true,
-      "severity": "major"
+      "name": "Missing Manufacturer Address",
+      "conditions": { "all": [ { "fact": "manufacturer_address", "operator": "equal", "value": false } ] },
+      "event": { "type": "violation", "params": { "rule_id": "rule_6_1_a", "rule_number": "6(1)(a)", "title": "Missing Manufacturer Address", "severity": "major", "description": "Name and address of manufacturer must be declared." } }
     },
     {
-      "rule_id": "rule_6_1_aa",
-      "rule_number": "6(1)(aa)",
-      "title": "Country of origin (imported products only)",
-      "description": "For imported products, the name of the country of origin, manufacture or assembly shall be mentioned on the package.",
-      "check_type": "presence",
-      "field": "country_of_origin",
-      "required": false,
-      "condition": "applies_if_imported",
-      "severity": "major"
+      "name": "Missing Commodity Name",
+      "conditions": { "all": [ { "fact": "commodity_name", "operator": "equal", "value": false } ] },
+      "event": { "type": "violation", "params": { "rule_id": "rule_6_1_b", "rule_number": "6(1)(b)", "title": "Missing Generic Commodity Name", "severity": "major", "description": "The common or generic name of the commodity must be mentioned." } }
     },
     {
-      "rule_id": "rule_6_1_b",
-      "rule_number": "6(1)(b)",
-      "title": "Common / generic name of commodity",
-      "description": "The common or generic name of the commodity contained in the package must be mentioned. For multi-product packages, name and quantity of each product.",
-      "check_type": "presence",
-      "field": "commodity_name",
-      "required": true,
-      "severity": "major"
+      "name": "Missing Net Quantity",
+      "conditions": { "all": [ { "fact": "net_quantity", "operator": "equal", "value": false } ] },
+      "event": { "type": "violation", "params": { "rule_id": "rule_6_1_c", "rule_number": "6(1)(c)", "title": "Missing Net Quantity", "severity": "major", "description": "Net quantity in standard units must be mentioned." } }
     },
     {
-      "rule_id": "rule_6_1_c",
-      "rule_number": "6(1)(c)",
-      "title": "Net quantity declaration",
-      "description": "Net quantity in terms of standard unit of weight/measure/number must be mentioned.",
-      "check_type": "presence",
-      "field": "net_quantity",
-      "required": true,
-      "severity": "major",
-      "related_rule": "rule_11_net_quantity"
+      "name": "Missing Manufacture Date",
+      "conditions": { "all": [ { "fact": "manufacture_date", "operator": "equal", "value": false } ] },
+      "event": { "type": "violation", "params": { "rule_id": "rule_6_1_d", "rule_number": "6(1)(d)", "title": "Missing Manufacture Date", "severity": "major", "description": "Month and year of manufacture must be mentioned." } }
     },
     {
-      "rule_id": "rule_6_1_d_mfg_date",
-      "rule_number": "6(1)(d)",
-      "title": "Month and year of manufacture",
-      "description": "Month and year in which the commodity is manufactured shall be mentioned on the package. (Note: 'pre-packed or imported' wording was omitted vide GSR 779(E)/226(E), effective 1.10.2022 - only 'manufactured' date required now.)",
-      "check_type": "presence",
-      "field": "manufacture_date",
-      "required": true,
-      "severity": "major",
-      "exemptions": [
-        "bidi or incense sticks",
-        "domestic LPG cylinder of 14.2kg or 5kg marketed by public sector undertaking"
-      ]
+      "name": "Missing MRP",
+      "conditions": { "all": [ { "fact": "mrp", "operator": "equal", "value": false } ] },
+      "event": { "type": "violation", "params": { "rule_id": "rule_6_1_e", "rule_number": "6(1)(e)", "title": "Missing Retail Sale Price (MRP)", "severity": "major", "description": "MRP must be clearly printed inclusive of all taxes." } }
     },
     {
-      "rule_id": "rule_6_1_da",
-      "rule_number": "6(1)(da)",
-      "title": "Best before / use by date",
-      "description": "If a package contains a commodity which may become unfit for human consumption after a period of time, 'best before or use by' date, month and year shall be mentioned.",
-      "check_type": "presence",
-      "field": "best_before_or_use_by",
-      "required": false,
-      "condition": "applies_if_perishable",
-      "severity": "major"
+      "name": "Missing Consumer Care Contact",
+      "conditions": { "all": [ { "fact": "consumer_care_contact", "operator": "equal", "value": false } ] },
+      "event": { "type": "violation", "params": { "rule_id": "rule_6_2", "rule_number": "6(2)", "title": "Missing Consumer Care Contact", "severity": "minor", "description": "Contact details for consumer complaints must be provided." } }
     },
     {
-      "rule_id": "rule_6_1_e_mrp",
-      "rule_number": "6(1)(e)",
-      "title": "Retail sale price (MRP)",
-      "description": "Retail sale price must be declared as maximum price inclusive of all taxes, in Indian currency, in the form 'MRP Rs. xx.xx (incl. of all taxes)' or similar.",
-      "check_type": "presence_and_format",
-      "field": "mrp",
-      "required": true,
-      "format_pattern": "MRP.*incl.*taxes",
-      "severity": "major",
-      "exemptions": [
-        "bidi",
-        "domestic LPG cylinder priced under Administrative Price Mechanism"
-      ]
+      "name": "Missing Best Before (Perishable - Food)",
+      "conditions": { "all": [ { "fact": "category", "operator": "equal", "value": "packaged_food" }, { "fact": "best_before_or_use_by", "operator": "equal", "value": false } ] },
+      "event": { "type": "violation", "params": { "rule_id": "rule_6_1_da", "rule_number": "6(1)(da)", "title": "Missing Best Before Date", "severity": "critical", "description": "Packaged food must declare Best Before or Use By date." } }
     },
     {
-      "rule_id": "rule_6_2_consumer_care",
-      "rule_number": "6(2)",
-      "title": "Consumer complaint contact details",
-      "description": "Name, address, telephone number and e-mail address of the person/office that can be contacted for consumer complaints.",
-      "check_type": "presence",
-      "field": "consumer_care_contact",
-      "required": true,
-      "severity": "minor"
+      "name": "Missing Veg/Non-Veg (Packaged Food)",
+      "conditions": { "all": [ { "fact": "category", "operator": "equal", "value": "packaged_food" }, { "fact": "veg_nonveg_mark", "operator": "equal", "value": false } ] },
+      "event": { "type": "violation", "params": { "rule_id": "veg_mark", "rule_number": "FSSAI / LMPC", "title": "Missing Veg/Non-Veg Mark", "severity": "major", "description": "Required for consumables (Packaged Food)." } }
     },
     {
-      "rule_id": "rule_6_1_7_gm",
-      "rule_number": "6(1)(7)",
-      "title": "GM food declaration",
-      "description": "Every package containing genetically modified food shall bear the words 'GM' at the top of its principal display panel.",
-      "check_type": "presence",
-      "field": "gm_declaration",
-      "required": false,
-      "condition": "applies_if_genetically_modified",
-      "severity": "major"
+      "name": "Missing Veg/Non-Veg (Cosmetics)",
+      "conditions": { "all": [ { "fact": "category", "operator": "equal", "value": "cosmetics_toiletries" }, { "fact": "veg_nonveg_mark", "operator": "equal", "value": false } ] },
+      "event": { "type": "violation", "params": { "rule_id": "veg_mark", "rule_number": "FSSAI / LMPC", "title": "Missing Veg/Non-Veg Mark", "severity": "major", "description": "Required for Cosmetics and Toiletries." } }
     },
     {
-      "rule_id": "rule_6_1_8_veg_nonveg",
-      "rule_number": "6(1)(8)",
-      "title": "Veg / non-veg mark (soaps, shampoos, toothpaste, cosmetics/toiletries)",
-      "description": "Every package containing soaps, shampoos, toothpastes and other cosmetics and toiletries shall bear a green dot (vegetarian origin) or red/brown dot (non-vegetarian origin) at the top of its principal display panel.",
-      "check_type": "presence",
-      "field": "veg_nonveg_mark",
-      "required": false,
-      "condition": "applies_to_cosmetics_toiletries_categories",
-      "severity": "minor"
+      "name": "Rule 7 Font Height Violation (Area < 50)",
+      "conditions": { "all": [ { "fact": "pdp_area_cm2", "operator": "lessThan", "value": 50 }, { "fact": "font_height_mm", "operator": "lessThan", "value": 1.0 }, { "fact": "font_height_mm", "operator": "greaterThanInclusive", "value": 0.01 } ] },
+      "event": { "type": "violation", "params": { "rule_id": "rule_7_small", "rule_number": "7(1)", "title": "Font Height Too Small (Area < 50 sq cm)", "severity": "major", "description": "Font height must be at least 1.0mm for Area < 50 cm²" } }
     },
     {
-      "rule_id": "rule_7_pdp_letter_height",
-      "rule_number": "7(2)",
-      "title": "Minimum height of numerals and letters (by Principal Display Panel area)",
-      "description": "The height of any numeral and letter in the declaration shall be as per Table-I (area-based, post-2017 amendment). Width of letter/numeral shall not be less than one-third of its height, except for numeral '1' and letters i, I, l.",
-      "check_type": "measurement",
-      "field": "letter_height_mm",
-      "required": true,
-      "severity": "major",
-      "measurement_basis": "reference_object_calibration",
-      "table": [
-        { "pdp_area_cm2_min": 0,    "pdp_area_cm2_max": 50,   "min_height_mm_normal": 1.0, "min_height_mm_blown_molded": 2.0 },
-        { "pdp_area_cm2_min": 50,   "pdp_area_cm2_max": 100,  "min_height_mm_normal": 1.5, "min_height_mm_blown_molded": 3.0 },
-        { "pdp_area_cm2_min": 100,  "pdp_area_cm2_max": 500,  "min_height_mm_normal": 2.5, "min_height_mm_blown_molded": 4.0 },
-        { "pdp_area_cm2_min": 500,  "pdp_area_cm2_max": 2500, "min_height_mm_normal": 4.0, "min_height_mm_blown_molded": 6.0 },
-        { "pdp_area_cm2_min": 2500, "pdp_area_cm2_max": null, "min_height_mm_normal": 6.0, "min_height_mm_blown_molded": 6.0 }
-      ],
-      "width_to_height_ratio_min": 0.333,
-      "width_ratio_exceptions": ["numeral 1", "letter i", "letter I", "letter l"]
-    },
-    {
-      "rule_id": "rule_7_1_small_package",
-      "rule_number": "7(1)",
-      "title": "Small package principal display panel",
-      "description": "For packages of capacity 10 cubic cm or less, the principal display panel may be a card or tape affixed firmly to the package.",
-      "check_type": "informational",
-      "field": null,
-      "required": false,
-      "severity": "info"
-    },
-    {
-      "rule_id": "rule_9_legibility",
-      "rule_number": "9(1)(a)",
-      "title": "Legible and prominent declaration",
-      "description": "Every declaration required under these rules shall be legible and prominent.",
-      "check_type": "visual_quality",
-      "field": "legibility_score",
-      "required": true,
-      "severity": "major"
-    },
-    {
-      "rule_id": "rule_9_contrast",
-      "rule_number": "9(1)(b)",
-      "title": "Contrasting colour for MRP and net quantity",
-      "description": "Numerals of the retail sale price and net quantity declaration shall be printed, painted or inscribed in a colour that contrasts conspicuously with the background of the label. Exception: information blown/formed/molded on glass or plastic surface need not be in contrasting colour. Hand-written/hand-script declarations must be clear, unambiguous and legible.",
-      "check_type": "visual_quality",
-      "field": "contrast_score",
-      "required": true,
-      "severity": "major",
-      "exemptions": [
-        "blown/formed/molded label information on glass or plastic surface"
-      ]
-    },
-    {
-      "rule_id": "rule_9_4_language",
-      "rule_number": "9(4)",
-      "title": "Language of declaration",
-      "description": "Particulars of declarations shall be in Hindi (Devanagari script) or English. Use of any other language in addition is not prohibited.",
-      "check_type": "language_detection",
-      "field": "declaration_language",
-      "required": true,
-      "accepted_values": ["hindi_devanagari", "english"],
-      "severity": "minor"
-    },
-    {
-      "rule_id": "rule_11_net_quantity_excludes_packaging",
-      "rule_number": "11(1)",
-      "title": "Net quantity excludes wrapper/packaging weight",
-      "description": "In declaring the net quantity of the commodity contained in a package, the weight of wrappers and materials other than the commodity shall be excluded.",
-      "check_type": "informational",
-      "field": "net_quantity",
-      "required": true,
-      "severity": "major"
-    },
-    {
-      "rule_id": "rule_8_1_quantity_declaration_free_zone",
-      "rule_number": "8(1)",
-      "title": "Free space around quantity declaration",
-      "description": "The area surrounding the quantity declaration shall be free from printed information: above/below by a space equal to at least the height of the numeral, and to left/right by a space at least twice the height of the numeral.",
-      "check_type": "visual_layout",
-      "field": "quantity_declaration_clear_zone",
-      "required": true,
-      "severity": "minor"
+      "name": "Rule 7 Font Height Violation (50 <= Area < 2500)",
+      "conditions": { "all": [ { "fact": "pdp_area_cm2", "operator": "greaterThanInclusive", "value": 50 }, { "fact": "pdp_area_cm2", "operator": "lessThan", "value": 2500 }, { "fact": "font_height_mm", "operator": "lessThan", "value": 2.0 }, { "fact": "font_height_mm", "operator": "greaterThanInclusive", "value": 0.01 } ] },
+      "event": { "type": "violation", "params": { "rule_id": "rule_7_medium", "rule_number": "7(1)", "title": "Font Height Too Small (50-2500 sq cm)", "severity": "major", "description": "Font height must be at least 2.0mm for Area 50-2500 cm²" } }
     }
-  ],
-  "first_schedule_max_permissible_error": {
-    "by_weight_or_volume": [
-      { "declared_qty_g_or_ml_min": 0,     "declared_qty_g_or_ml_max": 50,    "error_pct": 9,   "error_g_or_ml": null },
-      { "declared_qty_g_or_ml_min": 50,    "declared_qty_g_or_ml_max": 100,   "error_pct": null,"error_g_or_ml": 4.5 },
-      { "declared_qty_g_or_ml_min": 100,   "declared_qty_g_or_ml_max": 200,   "error_pct": 4.5, "error_g_or_ml": null },
-      { "declared_qty_g_or_ml_min": 200,   "declared_qty_g_or_ml_max": 300,   "error_pct": null,"error_g_or_ml": 9 },
-      { "declared_qty_g_or_ml_min": 300,   "declared_qty_g_or_ml_max": 500,   "error_pct": 3,   "error_g_or_ml": null },
-      { "declared_qty_g_or_ml_min": 500,   "declared_qty_g_or_ml_max": 1000,  "error_pct": null,"error_g_or_ml": 15 },
-      { "declared_qty_g_or_ml_min": 1000,  "declared_qty_g_or_ml_max": 10000, "error_pct": 1.5, "error_g_or_ml": null },
-      { "declared_qty_g_or_ml_min": 10000, "declared_qty_g_or_ml_max": 15000, "error_pct": null,"error_g_or_ml": 150 },
-      { "declared_qty_g_or_ml_min": 15000, "declared_qty_g_or_ml_max": null,  "error_pct": 1.0, "error_g_or_ml": null }
-    ],
-    "by_length_area_or_number": [
-      { "type": "length", "error_pct_up_to_10m": 2, "error_pct_thereafter": 1 },
-      { "type": "area",   "error_pct_up_to_10sqm": 4, "error_pct_thereafter": 1 },
-      { "type": "number", "error_pct": 2 }
-    ]
-  },
-  "penalties": {
-    "rule_32_fine_general": "Rs. 5,000 for contravention of any provision with no specific punishment prescribed",
-    "note": "Penalty amounts are informational only; app never issues penalties, only flags for officer review."
-  }
+  ]
 }
