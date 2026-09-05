@@ -55,7 +55,7 @@ class _ReviewPageState extends State<ReviewPage> {
       final bytes = await File(widget.imagePath!).readAsBytes();
       _rawImage = await decodeImageFromList(bytes);
     }
-    await _engine.loadRules();
+    await _engine.loadRules(_selectedCategory);
     _evaluateRules();
   }
 
@@ -145,10 +145,11 @@ class _ReviewPageState extends State<ReviewPage> {
                       child: Text(cat.replaceAll('_', ' ').toUpperCase()),
                     );
                   }).toList(),
-                  onChanged: (val) {
+                  onChanged: (val) async {
                     if (val != null) {
+                      _selectedCategory = val;
+                      await _engine.loadRules(val);
                       setState(() {
-                        _selectedCategory = val;
                         _evaluateRules();
                       });
                     }

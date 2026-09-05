@@ -1,0 +1,5 @@
+{
+  "rules": [
+    { "name": "Missing Veg/Non-Veg (Cosmetics)", "conditions": { "all": [ { "fact": "veg_nonveg_mark", "operator": "equal", "value": false } ] }, "event": { "type": "violation", "params": { "rule_id": "veg_mark", "rule_number": "FSSAI / LMPC", "title": "Missing Veg/Non-Veg Mark", "severity": "major", "description": "Required for Cosmetics and Toiletries." } } }
+  ]
+}

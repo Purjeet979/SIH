@@ -26,11 +26,19 @@ class RuleEngine {
     _rules = data['rules'] as List<dynamic>;
   }
 
-  Future<void> loadRules() async {
+  Future<void> loadRules(String category) async {
+    _rules = [];
     try {
-      final jsonString = await rootBundle.loadString('assets/base.json');
-      final data = jsonDecode(jsonString);
-      _rules = data['rules'] as List<dynamic>;
+      final commonString = await rootBundle.loadString('assets/common.json');
+      _rules.addAll(jsonDecode(commonString)['rules'] as List<dynamic>);
+      
+      try {
+         final categoryString = await rootBundle.loadString('assets/$category.json');
+         _rules.addAll(jsonDecode(categoryString)['rules'] as List<dynamic>);
+      } catch (e) {
+         // It's okay if a category-specific JSON doesn't exist, just use common
+         print("No specific rules found for $category");
+      }
     } catch (e) {
       print("Error loading rules: $e");
     }

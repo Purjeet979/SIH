@@ -1,0 +1,6 @@
+{
+  "rules": [
+    { "name": "Missing Best Before (Perishable - Food)", "conditions": { "all": [ { "fact": "best_before_or_use_by", "operator": "equal", "value": false } ] }, "event": { "type": "violation", "params": { "rule_id": "rule_6_1_da", "rule_number": "6(1)(da)", "title": "Missing Best Before Date", "severity": "critical", "description": "Packaged food must declare Best Before or Use By date." } } },
+    { "name": "Missing Veg/Non-Veg (Packaged Food)", "conditions": { "all": [ { "fact": "veg_nonveg_mark", "operator": "equal", "value": false } ] }, "event": { "type": "violation", "params": { "rule_id": "veg_mark", "rule_number": "FSSAI / LMPC", "title": "Missing Veg/Non-Veg Mark", "severity": "major", "description": "Required for consumables (Packaged Food)." } } }
+  ]
+}
