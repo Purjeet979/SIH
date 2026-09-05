@@ -1,0 +1,107 @@
+// The Android Gradle Plugin builds the native code with the Android NDK.
+
+group = "com.robert008.flutter_ocr_kit"
+version = "1.0"
+
+buildscript {
+    ext.kotlin_version = "1.9.22"
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath("com.android.tools.build:gradle:8.7.0")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
+    }
+}
+
+rootProject.allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+apply plugin: "com.android.library"
+apply plugin: "kotlin-android"
+
+def jniLibsDir = file("src/main/jniLibs")
+def arm64Dir = file("src/main/jniLibs/arm64-v8a")
+def releaseVersion = "v1.0.0"
+def downloadUrl = "https://github.com/robert008/flutter_ocr_kit/releases/download/${releaseVersion}/jniLibs.zip"
+
+task downloadNativeLibraries {
+    doLast {
+        if (arm64Dir.exists() && file("${arm64Dir}/libocr_kit.so").exists()) {
+            println "Android native libraries already exist"
+            return
+        }
+
+        println "Downloading Android native libraries..."
+        println "URL: ${downloadUrl}"
+
+        def zipFile = file("${buildDir}/jniLibs.zip")
+        zipFile.parentFile.mkdirs()
+
+        ant.get(src: downloadUrl, dest: zipFile, skipexisting: 'false')
+
+        jniLibsDir.mkdirs()
+        ant.unzip(src: zipFile, dest: jniLibsDir)
+
+        zipFile.delete()
+
+        println "Android native libraries downloaded successfully"
+    }
+}
+
+preBuild.dependsOn downloadNativeLibraries
+
+android {
+    namespace = "com.robert008.flutter_ocr_kit"
+
+    compileSdk = 35
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+
+    defaultConfig {
+        minSdk = 21
+        ndk {
+            abiFilters 'arm64-v8a', 'armeabi-v7a'
+        }
+    }
+
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['src/main/jniLibs']
+            kotlin.srcDirs += 'src/main/kotlin'
+        }
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+
+    // ML Kit Text Recognition - Chinese (includes both Traditional & Simplified)
+    implementation 'com.google.mlkit:text-recognition-chinese:16.0.1'
+
+    // ML Kit Text Recognition - Latin (for English and other Latin scripts)
+    implementation 'com.google.mlkit:text-recognition:16.0.1'
+
+    // Coroutines for async operations
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3'
+
+    // JSON serialization
+    implementation 'com.google.code.gson:gson:2.10.1'
+
+    // ExifInterface for reading image orientation
+    implementation 'androidx.exifinterface:exifinterface:1.3.7'
+}

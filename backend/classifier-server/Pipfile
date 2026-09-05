@@ -1,0 +1,27 @@
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+flask = "*"
+flask-sqlalchemy = "*"
+flask-restful = "*"
+flask-jwt-extended = "*"
+flask-uploads = "*"
+marshmallow = "==3.0.0b12"
+python-dotenv = "*"
+werkzeug = "==0.16.1"
+passlib = "*"
+flask-ngrok = "*"
+flask-mail = "*"
+pillow = "*"
+
+[dev-packages]
+autopep8 = "*"
+flake8 = "*"
+
+[requires]
+python_version = "3.8"
+
+[pipenv]
+allow_prereleases = true
