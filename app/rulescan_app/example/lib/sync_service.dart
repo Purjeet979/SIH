@@ -1,7 +1,7 @@
 import 'db_helper.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'dart:io';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:path/path.dart' as p;
 
 class SyncService {
   
@@ -15,51 +15,74 @@ class SyncService {
       return "No unsynced records found. Everything is up to date!";
     }
 
-    List<Map<String, dynamic>> payload = [];
-    for (var record in unsynced) {
-      Map<String, dynamic> mutableRecord = Map<String, dynamic>.from(record);
-      
-      // FIX: mobile_id collision. If the app is reinstalled, id starts from 1 again.
-      // To ensure globally unique but deterministic IDs for idempotency, we combine 
-      // the local ID with the creation timestamp's epoch.
-      int uniqueMobileId = record['id'] + DateTime.parse(record['timestamp']).millisecondsSinceEpoch;
-      mutableRecord['id'] = uniqueMobileId;
+    final supabase = Supabase.instance.client;
+    if (supabase.auth.currentUser == null) {
+      return "❌ Error: Not logged in. Please log in first.";
+    }
 
-      String? imagePath = mutableRecord['image_path'];
-      if (imagePath != null) {
-        try {
+    int successCount = 0;
+
+    for (var record in unsynced) {
+      try {
+        String? storagePath;
+        String? imagePath = record['image_path'];
+        
+        // 1. Upload Image to Storage (if exists)
+        if (imagePath != null) {
           File imgFile = File(imagePath);
           if (await imgFile.exists()) {
-             List<int> imageBytes = await imgFile.readAsBytes();
-             mutableRecord['image_base64'] = base64Encode(imageBytes);
+             final fileName = 'evidence_${DateTime.now().millisecondsSinceEpoch}${p.extension(imgFile.path)}';
+             await supabase.storage.from('inspection-evidence').upload(fileName, imgFile);
+             storagePath = fileName;
           }
-        } catch (_) {}
+        }
+
+        // 2. Insert into Products
+        final product = await supabase.from('products').insert({
+          'brand': 'Unknown',
+          'product_name': 'Scanned Product',
+          'manufacturer': 'Unknown',
+          'category': record['category'],
+          'barcode': record['barcode'] ?? '',
+        }).select().single();
+
+        // 3. Insert into Inspections
+        String violationsStr = record['violations'] ?? '';
+        String overallStatus = violationsStr.isEmpty ? 'PASS' : 'FAIL';
+        
+        final insp = await supabase.from('inspections').insert({
+          'officer_id': supabase.auth.currentUser!.id,
+          'product_id': product['id'],
+          'source_type': 'CAMERA',
+          'category': record['category'],
+          'overall_status': overallStatus,
+          'latitude': record['latitude'] ?? 0.0,
+          'longitude': record['longitude'] ?? 0.0,
+          'remarks': violationsStr,
+        }).select().single();
+
+        // 4. Insert into Evidence
+        if (storagePath != null) {
+          await supabase.from('evidence').insert({
+            'inspection_id': insp['id'],
+            'evidence_type': 'ORIGINAL_IMAGE',
+            'storage_path': storagePath
+          });
+        }
+
+        // If successful, mark as synced locally
+        await DBHelper.instance.markAsSynced(record['id']);
+        successCount++;
+        
+      } catch (e) {
+        print("Sync error for record ${record['id']}: $e");
       }
-      payload.add(mutableRecord);
     }
     
-    try {
-      final response = await http.post(
-        Uri.parse('https://zbkphvdtxwydfihgcbnv.supabase.co/rest/v1/inspections'),
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpia3BodmR0eHd5ZGZpaGdjYm52Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg2MDcyMzksImV4cCI6MjEwNDE4MzIzOX0.B-iPMWxV3CrFq1vnkWWedXQk31KCf33paD5kDctoIu0',
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpia3BodmR0eHd5ZGZpaGdjYm52Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg2MDcyMzksImV4cCI6MjEwNDE4MzIzOX0.B-iPMWxV3CrFq1vnkWWedXQk31KCf33paD5kDctoIu0'
-        },
-        body: jsonEncode(payload),
-      ).timeout(const Duration(seconds: 15));
-      
-      // Supabase returns 201 Created for successful inserts
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        for (var record in unsynced) {
-            await DBHelper.instance.markAsSynced(record['id']);
-        }
-        return "✅ Successfully synced ${payload.length} records to Supabase Dashboard!";
-      } else {
-         return "❌ Server error: ${response.statusCode} - ${response.body}";
-      }
-    } catch (e) {
-      return "❌ Network Error (Firewall blocking?): $e";
+    if (successCount == unsynced.length) {
+      return "✅ Successfully synced $successCount records to Supabase Cloud!";
+    } else {
+      return "⚠️ Synced $successCount out of ${unsynced.length} records. Check logs for errors.";
     }
   }
 }

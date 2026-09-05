@@ -3,20 +3,37 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  'https://ganoupqtsujbtrikhiia.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdhbm91cHF0c3VqYnRyaWtoaWlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg2MjQyMDQsImV4cCI6MjEwNDIwMDIwNH0.tySQFHOj3VMOcEAU469yca_5nYNok0286yYmnC1j6aY'
+);
+
 export default function DashboardPage() {
   const [inspections, setInspections] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchInspections = async () => {
     try {
-      const res = await fetch('https://zbkphvdtxwydfihgcbnv.supabase.co/rest/v1/inspections?select=*&order=id.desc', {
-        headers: {
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpia3BodmR0eHd5ZGZpaGdjYm52Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg2MDcyMzksImV4cCI6MjEwNDE4MzIzOX0.B-iPMWxV3CrFq1vnkWWedXQk31KCf33paD5kDctoIu0',
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpia3BodmR0eHd5ZGZpaGdjYm52Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg2MDcyMzksImV4cCI6MjEwNDE4MzIzOX0.B-iPMWxV3CrFq1vnkWWedXQk31KCf33paD5kDctoIu0'
-        }
-      });
-      const data = await res.json();
-      if (Array.isArray(data)) {
+      const { data, error } = await supabase
+        .from('inspections')
+        .select(`
+          id,
+          category,
+          overall_status,
+          remarks,
+          latitude,
+          longitude,
+          officer_id,
+          created_at,
+          products ( barcode ),
+          evidence ( storage_path )
+        `)
+        .order('created_at', { ascending: false });
+        
+      if (error) throw error;
+      if (data) {
         setInspections(data);
       }
     } catch (err) {
@@ -67,7 +84,7 @@ export default function DashboardPage() {
           <div className="stat-card">
             <div className="num">
               {inspections.length > 0 
-                ? Math.round((inspections.filter(i => !i.violations || i.violations.trim() === '').length / inspections.length) * 100) 
+                ? Math.round((inspections.filter(i => i.overall_status === 'PASS').length / inspections.length) * 100) 
                 : 0}%
             </div>
             <div className="lbl">Overall compliance rate</div>
@@ -75,7 +92,7 @@ export default function DashboardPage() {
           </div>
           <div className="stat-card">
             <div className="num">
-                {inspections.filter(i => i.violations && i.violations.trim() !== '').length}
+                {inspections.filter(i => i.overall_status === 'FAIL').length}
             </div>
             <div className="lbl">Scans with Violations</div>
             <div className="delta delta-down">Need action</div>
@@ -98,26 +115,29 @@ export default function DashboardPage() {
               {loading && <tr><td colSpan="6" style={{textAlign: 'center', padding: '20px'}}>Loading live data...</td></tr>}
               {!loading && inspections.length === 0 && <tr><td colSpan="6" style={{textAlign: 'center', padding: '20px'}}>No inspections synced yet. Run a scan on the mobile app and tap SYNC DATA.</td></tr>}
               {inspections.map((insp) => {
-                  const violationsList = (insp.violations && insp.violations.trim() !== '') ? insp.violations.split(',') : [];
-                  const isCompliant = violationsList.length === 0;
+                  const violationsList = (insp.remarks && insp.remarks.trim() !== '') ? insp.remarks.split(',') : [];
+                  const isCompliant = insp.overall_status === 'PASS';
+                  const storagePath = insp.evidence && insp.evidence.length > 0 ? insp.evidence[0].storage_path : null;
+                  const imageUrl = storagePath ? `https://ganoupqtsujbtrikhiia.supabase.co/storage/v1/object/public/inspection-evidence/${storagePath}` : null;
+                  const barcode = insp.products && insp.products.barcode ? insp.products.barcode : '';
                   
                   return (
                     <tr key={insp.id}>
                       <td>
-                        {insp.image_data ? (
-                           <a href={`data:image/jpeg;base64,${insp.image_data}`} target="_blank" rel="noreferrer" title="Click to view full image">
-                               <img src={`data:image/jpeg;base64,${insp.image_data}`} alt="Evidence" style={{width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #ddd'}} />
+                        {imageUrl ? (
+                           <a href={imageUrl} target="_blank" rel="noreferrer" title="Click to view full image">
+                               <img src={imageUrl} alt="Evidence" style={{width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #ddd'}} />
                            </a>
                         ) : (
-                           <div style={{width: '60px', height: '60px', backgroundColor: '#eee', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#888', border: '1px solid #ddd'}}>No Photo</div>
+                           <div style={{width: '60px', height: '60px', backgroundColor: '#eee', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#888', border: '1px solid #ddd', textAlign: 'center'}}>No<br/>Photo</div>
                         )}
                       </td>
                       <td className="prod-cell">
-                        <div className="pname">Inspection #{insp.mobile_id}</div>
+                        <div className="pname">Inspection</div>
                         <div className="pcat">{insp.category}</div>
-                        {insp.barcode && insp.barcode.trim() !== '' && (
+                        {barcode.trim() !== '' && (
                           <div className="pcat" style={{color: '#6366f1', marginTop: '4px', fontSize: '11px'}}>
-                            <span style={{fontWeight: 'bold'}}>Barcode:</span> {insp.barcode}
+                            <span style={{fontWeight: 'bold'}}>Barcode:</span> {barcode}
                           </div>
                         )}
                       </td>
@@ -128,8 +148,8 @@ export default function DashboardPage() {
                               </a> 
                             : 'No GPS'}
                       </td>
-                      <td>{insp.officer_id}</td>
-                      <td>{new Date(insp.timestamp).toLocaleString()}</td>
+                      <td style={{fontSize: '11px', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis'}}>{insp.officer_id}</td>
+                      <td>{new Date(insp.created_at).toLocaleString()}</td>
                       <td>
                         {isCompliant ? (
                           <span className="chip chip-ok">Compliant</span>
