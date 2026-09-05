@@ -1,0 +1,42 @@
+# Flutter/Dart
+**/build/
+**/.dart_tool/
+**/.packages
+**/.pub-cache/
+**/.pub/
+**/build/
+**/app.dill
+**/*.dill
+**/*.swp
+**/.idea/
+**/.vscode/
+**/*.iml
+**/.DS_Store
+**/ios/.symlinks/
+**/ios/Pods/
+**/ios/Runner.xcworkspace/xcuserdata/
+**/android/.gradle/
+**/android/local.properties
+**/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
+**/windows/flutter/ephemeral/
+**/macos/Flutter/ephemeral/
+
+# Node.js
+**/node_modules/
+**/npm-debug.log
+**/yarn-error.log
+
+# Next.js
+**/.next/
+**/out/
+
+# Python
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+**/venv/
+**/.env
+
+# OS Files
+.DS_Store
+Thumbs.db
