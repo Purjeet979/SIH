@@ -10,11 +10,35 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  static const String officerEmail = 'officer@rulescan.gov.in';
+  static const String officerPassword = 'officer123';
+  static const String adminEmail = 'admin@rulescan.gov.in';
+  static const String adminPassword = 'admin123';
+
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLogin = true; // toggle between Login / Sign Up
   String _selectedRole = 'officer';
   bool _obscurePassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _applyDemoRole('officer');
+  }
+
+  void _applyDemoRole(String role) {
+    setState(() {
+      _selectedRole = role;
+      if (role == 'admin') {
+        _emailController.text = adminEmail;
+        _passwordController.text = adminPassword;
+      } else {
+        _emailController.text = officerEmail;
+        _passwordController.text = officerPassword;
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -24,7 +48,46 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _submit() {
-    // For MVP: skip real auth, just navigate to dashboard
+    final email = _emailController.text.trim().toLowerCase();
+    final password = _passwordController.text.trim();
+
+    if (email == adminEmail) {
+      if (password != adminPassword) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('❌ Incorrect password for Admin. Demo password: admin123'),
+            backgroundColor: AppTheme.violationRed,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomePage(role: 'admin')),
+      );
+      return;
+    }
+
+    if (email == officerEmail) {
+      if (password != officerPassword) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('❌ Incorrect password for Officer. Demo password: officer123'),
+            backgroundColor: AppTheme.violationRed,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomePage(role: 'officer')),
+      );
+      return;
+    }
+
+    // Default fallback
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => HomePage(role: _selectedRole)),
@@ -150,7 +213,7 @@ class _LoginPageState extends State<LoginPage> {
                         children: [
                           Expanded(
                             child: GestureDetector(
-                              onTap: () => setState(() => _selectedRole = 'officer'),
+                              onTap: () => _applyDemoRole('officer'),
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 200),
                                 padding: const EdgeInsets.symmetric(vertical: 14),
@@ -182,7 +245,7 @@ class _LoginPageState extends State<LoginPage> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: GestureDetector(
-                              onTap: () => setState(() => _selectedRole = 'admin'),
+                              onTap: () => _applyDemoRole('admin'),
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 200),
                                 padding: const EdgeInsets.symmetric(vertical: 14),
@@ -213,7 +276,55 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 12),
+
+                      // Demo Account Credentials Badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: _selectedRole == 'admin' ? const Color(0xFFF5F3FF) : AppTheme.primaryBlueLight,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: _selectedRole == 'admin' ? const Color(0xFFDDD6FE) : AppTheme.borderSubtle,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              _selectedRole == 'admin' ? Icons.shield_outlined : Icons.verified_user_outlined,
+                              size: 15,
+                              color: _selectedRole == 'admin' ? const Color(0xFF7C3AED) : AppTheme.primaryBlue,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _selectedRole == 'admin' ? 'Demo Admin: admin@rulescan.gov.in' : 'Demo Officer: officer@rulescan.gov.in',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: _selectedRole == 'admin' ? const Color(0xFF5B21B6) : AppTheme.textPrimary,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Text(
+                                    _selectedRole == 'admin' ? 'Password: admin123 (Full State Oversight)' : 'Password: officer123 (Field Scanner)',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: _selectedRole == 'admin' ? const Color(0xFF7C3AED) : AppTheme.primaryBlue,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
 
                       // Email
                       TextField(

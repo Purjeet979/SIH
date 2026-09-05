@@ -18,9 +18,9 @@
 - [ ] **Search & Filters**: Implement search bars to filter inspections by Date, Category, Rule Number, or Officer ID.
 
 # Phase 9: Security & Authentication (Section 29)
-- [ ] **JWT Auth**: Implement a simple Login page on the Next.js Dashboard.
+- [x] **JWT & Auth**: Implement Login page on the Next.js Dashboard and Flutter App with hardcoded Demo accounts and Supabase integration.
 - [ ] **Backend Middleware**: Update `server.js` to require and verify JWT tokens for all `/api/*` endpoints.
-- [ ] **RBAC (Role Based Access Control)**: Add simple user roles (Officer vs Admin) to restrict who can see analytics vs who can only submit data.
+- [x] **RBAC (Role Based Access Control)**: Add user roles (Officer vs Admin) with dedicated dashboard views and access restrictions.
 
 # Phase 10: Error Handling & Edge Cases (Section 31)
 - [ ] **Manual Fallbacks**: Implement manual crop UI if OCR fails on the first pass (for blurry images).
