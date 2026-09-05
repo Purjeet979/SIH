@@ -75,4 +75,3 @@ While the Mobile App is for the field officer, the Dashboard is for the Nodal Of
 - It includes a landing page to download the latest APK, and a Dashboard route to view aggregated compliance reports (currently stubbed, ready for Phase 2 API integration).
 
 ---
-*Document prepared by Antigravity (AI Assistant) for Team Kamchalau Coders.*
