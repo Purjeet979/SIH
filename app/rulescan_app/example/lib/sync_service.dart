@@ -18,6 +18,13 @@ class SyncService {
     List<Map<String, dynamic>> payload = [];
     for (var record in unsynced) {
       Map<String, dynamic> mutableRecord = Map<String, dynamic>.from(record);
+      
+      // FIX: mobile_id collision. If the app is reinstalled, id starts from 1 again.
+      // To ensure globally unique but deterministic IDs for idempotency, we combine 
+      // the local ID with the creation timestamp's epoch.
+      int uniqueMobileId = record['id'] + DateTime.parse(record['timestamp']).millisecondsSinceEpoch;
+      mutableRecord['id'] = uniqueMobileId;
+
       String? imagePath = mutableRecord['image_path'];
       if (imagePath != null) {
         try {
