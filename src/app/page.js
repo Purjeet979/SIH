@@ -1,7 +1,12 @@
+'use client';
+
 import Link from 'next/link';
 import ThemeToggle from './ThemeToggle';
+import { useAuth } from '@/context/AuthContext';
 
 export default function LandingPage() {
+  const { user, profile, role, isAuthenticated, signOut } = useAuth();
+
   return (
     <>
       <nav className="landing-nav">
@@ -16,9 +21,28 @@ export default function LandingPage() {
             <Link href="#research">Research</Link>
             <Link href="/dashboard">Dashboard</Link>
             <ThemeToggle />
-            <a className="nav-cta" href="/rulescan.apk" download>
-              Download APK
-            </a>
+            {isAuthenticated ? (
+              <div className="nav-auth-group">
+                <Link href="/dashboard" className="nav-user-pill">
+                  <span className="nav-user-avatar">
+                    {(profile?.full_name || user?.email || '?')[0].toUpperCase()}
+                  </span>
+                  <span>{profile?.full_name || 'Dashboard'}</span>
+                </Link>
+                <button className="nav-signout-btn" onClick={() => signOut()}>
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <div className="nav-auth-group">
+                <Link className="nav-login-btn" href="/login">
+                  Sign In
+                </Link>
+                <Link className="nav-cta" href="/signup">
+                  Get Started
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </nav>
@@ -52,14 +76,26 @@ export default function LandingPage() {
                   </div>
                 </a>
 
-                <Link className="btn-hero-light" href="/dashboard">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <line x1="18" y1="20" x2="18" y2="10"></line>
-                    <line x1="12" y1="20" x2="12" y2="4"></line>
-                    <line x1="6" y1="20" x2="6" y2="14"></line>
-                  </svg>
-                  <span>Explore Live Telemetry</span>
-                </Link>
+                {isAuthenticated ? (
+                  <Link className="btn-hero-light" href="/dashboard">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <line x1="18" y1="20" x2="18" y2="10"></line>
+                      <line x1="12" y1="20" x2="12" y2="4"></line>
+                      <line x1="6" y1="20" x2="6" y2="14"></line>
+                    </svg>
+                    <span>Open Dashboard</span>
+                  </Link>
+                ) : (
+                  <Link className="btn-hero-light" href="/signup">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="8.5" cy="7" r="4"></circle>
+                      <line x1="20" y1="8" x2="20" y2="14"></line>
+                      <line x1="23" y1="11" x2="17" y2="11"></line>
+                    </svg>
+                    <span>Create Account — Free</span>
+                  </Link>
+                )}
               </div>
 
               {/* FEATURE PILLS */}
@@ -210,6 +246,52 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ROLE-BASED ACCESS SECTION */}
+      <section className="roles-section" id="roles">
+        <div className="wrap">
+          <div className="section-head">
+            <div className="eyebrow">Role-Based Access Control</div>
+            <h2>Three roles, one unified platform</h2>
+            <p>Each role gets a tailored experience optimized for their workflow.</p>
+          </div>
+          <div className="roles-grid">
+            <div className="role-card role-card-admin">
+              <div className="role-card-icon">⚙️</div>
+              <h3>Admin</h3>
+              <p>Full system control — manage users, rule bundles, view all inspections across all officers and regions.</p>
+              <ul className="role-features">
+                <li>✓ User & role management</li>
+                <li>✓ All inspection logs</li>
+                <li>✓ Rule bundle versioning</li>
+                <li>✓ System-wide analytics</li>
+              </ul>
+            </div>
+            <div className="role-card role-card-employee">
+              <div className="role-card-icon">🔍</div>
+              <h3>Employee (Officer)</h3>
+              <p>Field-grade access — create inspections, sync from mobile, view personal scan history and results.</p>
+              <ul className="role-features">
+                <li>✓ Create inspections</li>
+                <li>✓ Mobile sync</li>
+                <li>✓ Personal scan history</li>
+                <li>✓ Rule result review</li>
+              </ul>
+            </div>
+            <div className="role-card role-card-user">
+              <div className="role-card-icon">📊</div>
+              <h3>User (Viewer)</h3>
+              <p>Read-only analytics — view public compliance reports, category breakdowns, and violation trends.</p>
+              <ul className="role-features">
+                <li>✓ Compliance reports</li>
+                <li>✓ Category analytics</li>
+                <li>✓ Violation trends</li>
+                <li>✓ Public dashboard</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CATEGORIES */}
       <section className="cat-band" id="categories">
         <div className="wrap">
@@ -324,6 +406,12 @@ export default function LandingPage() {
               <ul>
                 <li>
                   <Link href="/dashboard">State Analytics Dashboard</Link>
+                </li>
+                <li>
+                  <Link href="/login">Sign In</Link>
+                </li>
+                <li>
+                  <Link href="/signup">Create Account</Link>
                 </li>
                 <li>
                   <Link href="#how">Inspection Pipeline</Link>

@@ -20,18 +20,26 @@
 # production
 /build
 
-# misc
+# Python
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+**/venv/
+
+# Environment files
+.env*.local
+.env.local
+
+# OS Files
 .DS_Store
 *.pem
+Thumbs.db
 
 # debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
-
-# env files (can opt-in for committing if needed)
-.env*
 
 # vercel
 .vercel
