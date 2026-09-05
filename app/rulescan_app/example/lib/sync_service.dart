@@ -40,21 +40,24 @@ class SyncService {
     
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.5:3001/api/sync'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'inspections': payload}),
-      ).timeout(const Duration(seconds: 5));
+        Uri.parse('https://zbkphvdtxwydfihgcbnv.supabase.co/rest/v1/inspections'),
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpia3BodmR0eHd5ZGZpaGdjYm52Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg2MDcyMzksImV4cCI6MjEwNDE4MzIzOX0.B-iPMWxV3CrFq1vnkWWedXQk31KCf33paD5kDctoIu0',
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpia3BodmR0eHd5ZGZpaGdjYm52Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg2MDcyMzksImV4cCI6MjEwNDE4MzIzOX0.B-iPMWxV3CrFq1vnkWWedXQk31KCf33paD5kDctoIu0'
+        },
+        body: jsonEncode(payload),
+      ).timeout(const Duration(seconds: 15));
       
-      if (response.statusCode == 200) {
-        final resData = jsonDecode(response.body);
-        if (resData['success'] == true) {
-            for (var record in unsynced) {
-                await DBHelper.instance.markAsSynced(record['id']);
-            }
-            return "✅ Successfully synced ${resData['inserted']} records to Dashboard!";
+      // Supabase returns 201 Created for successful inserts
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        for (var record in unsynced) {
+            await DBHelper.instance.markAsSynced(record['id']);
         }
+        return "✅ Successfully synced ${payload.length} records to Supabase Dashboard!";
+      } else {
+         return "❌ Server error: ${response.statusCode} - ${response.body}";
       }
-      return "❌ Server error: ${response.statusCode}";
     } catch (e) {
       return "❌ Network Error (Firewall blocking?): $e";
     }

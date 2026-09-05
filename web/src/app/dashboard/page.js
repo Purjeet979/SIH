@@ -9,10 +9,15 @@ export default function DashboardPage() {
 
   const fetchInspections = async () => {
     try {
-      const res = await fetch('http://localhost:3001/api/inspections');
+      const res = await fetch('https://zbkphvdtxwydfihgcbnv.supabase.co/rest/v1/inspections?select=*&order=id.desc', {
+        headers: {
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpia3BodmR0eHd5ZGZpaGdjYm52Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg2MDcyMzksImV4cCI6MjEwNDE4MzIzOX0.B-iPMWxV3CrFq1vnkWWedXQk31KCf33paD5kDctoIu0',
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpia3BodmR0eHd5ZGZpaGdjYm52Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg2MDcyMzksImV4cCI6MjEwNDE4MzIzOX0.B-iPMWxV3CrFq1vnkWWedXQk31KCf33paD5kDctoIu0'
+        }
+      });
       const data = await res.json();
-      if (data.data) {
-        setInspections(data.data);
+      if (Array.isArray(data)) {
+        setInspections(data);
       }
     } catch (err) {
       console.error("Failed to fetch inspections:", err);
@@ -84,7 +89,7 @@ export default function DashboardPage() {
 
         <div className="panel">
           <h3>Recent scans</h3>
-          <div className="sub">Latest inspections synced from field officers via Mobile App SQLite</div>
+          <div className="sub">Latest inspections synced from field officers via Supabase Cloud</div>
           <table>
             <thead>
               <tr><th>Evidence</th><th>Category</th><th>Coordinates</th><th>Officer</th><th>Time</th><th>Status</th></tr>
