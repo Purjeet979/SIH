@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'rule_engine.dart';
 import 'db_helper.dart';
-
+import 'fact_extractor.dart';
 class ReviewPage extends StatefulWidget {
   final String ocrText;
+  final String? imagePath;
 
-  const ReviewPage({super.key, required this.ocrText});
+  const ReviewPage({super.key, required this.ocrText, this.imagePath});
 
   @override
   State<ReviewPage> createState() => _ReviewPageState();
@@ -15,6 +16,7 @@ class _ReviewPageState extends State<ReviewPage> {
   final RuleEngine _engine = RuleEngine();
   String _selectedCategory = 'cosmetics_toiletries';
   List<Violation> _violations = [];
+  Map<String, dynamic> _facts = {};
   bool _isLoading = true;
 
   final List<String> _categories = [
@@ -41,22 +43,11 @@ class _ReviewPageState extends State<ReviewPage> {
   }
 
   void _evaluateRules() {
-    String text = widget.ocrText.toLowerCase();
-    
-    // Lazy Mock Fact Extraction based on OCR text (Ponytail mode: simplest regex/match)
-    Map<String, dynamic> facts = {
-      'category': _selectedCategory,
-      'manufacturer_address': text.contains('mfg') || text.contains('manufactured') || text.contains('ltd') || text.length > 50,
-      'net_quantity': text.contains('net') || text.contains('ml') || text.contains(' g ') || text.contains('kg'),
-      'mrp': text.contains('mrp') || text.contains('rs') || text.contains('₹'),
-      'manufacture_date': text.contains('mfg') || text.contains('date') || text.contains('202') || text.contains('pkd'),
-      'veg_nonveg_mark': false, // Needs shape detection/vision, defaulting to false for demo
-      'consumer_care_contact': text.contains('care') || text.contains('feedback') || text.contains('@'),
-      'letter_height_mm': 1.0, // Mocked for now, Phase 2 will implement real CV
-      'commodity_name': text.length > 10,
-    };
+    Map<String, dynamic> facts = FactExtractor.extractFacts(widget.ocrText);
+    facts['category'] = _selectedCategory; // Override with user selection
 
     setState(() {
+      _facts = facts;
       _violations = _engine.evaluate(facts);
       _isLoading = false;
     });
@@ -66,7 +57,7 @@ class _ReviewPageState extends State<ReviewPage> {
     // Generate simple comma-separated string for violations
     String violationsJson = _violations.map((v) => v.ruleId).join(",");
     
-    await DBHelper.instance.insertInspection(_selectedCategory, violationsJson);
+    await DBHelper.instance.insertInspection(_selectedCategory, violationsJson, imagePath: widget.imagePath);
     
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -128,6 +119,22 @@ class _ReviewPageState extends State<ReviewPage> {
                       });
                     }
                   },
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Extracted Values', 
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8.0,
+                  runSpacing: 4.0,
+                  children: [
+                    if (_facts['mrp_value'] != null) Chip(label: Text('MRP: ${_facts['mrp_value']}'), backgroundColor: Colors.green.shade100),
+                    if (_facts['net_quantity_value'] != null) Chip(label: Text('Qty: ${_facts['net_quantity_value']}'), backgroundColor: Colors.blue.shade100),
+                    if (_facts['manufacture_date_value'] != null) Chip(label: Text('Mfg: ${_facts['manufacture_date_value']}'), backgroundColor: Colors.orange.shade100),
+                    if (_facts['best_before_or_use_by_value'] != null) Chip(label: Text('Exp: ${_facts['best_before_or_use_by_value']}'), backgroundColor: Colors.red.shade100),
+                  ],
                 ),
                 const SizedBox(height: 24),
                 Row(

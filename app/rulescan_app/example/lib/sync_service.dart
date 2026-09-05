@@ -1,6 +1,7 @@
 import 'db_helper.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:io';
 
 class SyncService {
   
@@ -13,12 +14,28 @@ class SyncService {
     if (unsynced.isEmpty) {
       return "No unsynced records found. Everything is up to date!";
     }
+
+    List<Map<String, dynamic>> payload = [];
+    for (var record in unsynced) {
+      Map<String, dynamic> mutableRecord = Map<String, dynamic>.from(record);
+      String? imagePath = mutableRecord['image_path'];
+      if (imagePath != null) {
+        try {
+          File imgFile = File(imagePath);
+          if (await imgFile.exists()) {
+             List<int> imageBytes = await imgFile.readAsBytes();
+             mutableRecord['image_base64'] = base64Encode(imageBytes);
+          }
+        } catch (_) {}
+      }
+      payload.add(mutableRecord);
+    }
     
     try {
       final response = await http.post(
         Uri.parse('http://192.168.1.5:3001/api/sync'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'inspections': unsynced}),
+        body: jsonEncode({'inspections': payload}),
       ).timeout(const Duration(seconds: 5));
       
       if (response.statusCode == 200) {

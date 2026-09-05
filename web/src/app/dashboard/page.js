@@ -82,17 +82,26 @@ export default function DashboardPage() {
           <div className="sub">Latest inspections synced from field officers via Mobile App SQLite</div>
           <table>
             <thead>
-              <tr><th>Category</th><th>Coordinates</th><th>Officer</th><th>Time</th><th>Status</th></tr>
+              <tr><th>Evidence</th><th>Category</th><th>Coordinates</th><th>Officer</th><th>Time</th><th>Status</th></tr>
             </thead>
             <tbody>
-              {loading && <tr><td colSpan="5" style={{textAlign: 'center', padding: '20px'}}>Loading live data...</td></tr>}
-              {!loading && inspections.length === 0 && <tr><td colSpan="5" style={{textAlign: 'center', padding: '20px'}}>No inspections synced yet. Run a scan on the mobile app and tap SYNC DATA.</td></tr>}
+              {loading && <tr><td colSpan="6" style={{textAlign: 'center', padding: '20px'}}>Loading live data...</td></tr>}
+              {!loading && inspections.length === 0 && <tr><td colSpan="6" style={{textAlign: 'center', padding: '20px'}}>No inspections synced yet. Run a scan on the mobile app and tap SYNC DATA.</td></tr>}
               {inspections.map((insp) => {
                   const violationsList = (insp.violations && insp.violations.trim() !== '') ? insp.violations.split(',') : [];
                   const isCompliant = violationsList.length === 0;
                   
                   return (
                     <tr key={insp.id}>
+                      <td>
+                        {insp.image_data ? (
+                           <a href={`data:image/jpeg;base64,${insp.image_data}`} target="_blank" rel="noreferrer" title="Click to view full image">
+                               <img src={`data:image/jpeg;base64,${insp.image_data}`} alt="Evidence" style={{width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #ddd'}} />
+                           </a>
+                        ) : (
+                           <div style={{width: '60px', height: '60px', backgroundColor: '#eee', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#888', border: '1px solid #ddd'}}>No Photo</div>
+                        )}
+                      </td>
                       <td className="prod-cell">
                         <div className="pname">Inspection #{insp.mobile_id}</div>
                         <div className="pcat">{insp.category}</div>

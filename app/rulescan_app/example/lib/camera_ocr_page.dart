@@ -81,7 +81,7 @@ class _CameraOcrPageState extends State<CameraOcrPage> {
         // 3. Navigate directly to Review Page
         Navigator.pushReplacement(
           context, 
-          MaterialPageRoute(builder: (_) => ReviewPage(ocrText: allText))
+          MaterialPageRoute(builder: (_) => ReviewPage(ocrText: allText, imagePath: tempFilePath))
         );
       }
     } catch (e) {
@@ -91,11 +91,6 @@ class _CameraOcrPageState extends State<CameraOcrPage> {
     } finally {
       if (mounted) {
         setState(() => _isProcessing = false);
-      }
-      if (tempFilePath != null) {
-        try {
-          await File(tempFilePath).delete();
-        } catch (_) {}
       }
     }
   }

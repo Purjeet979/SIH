@@ -4,7 +4,7 @@ const db = require('./database');
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
 // 1. Sync Endpoint for Mobile App
 app.post('/api/sync', (req, res) => {
@@ -15,8 +15,8 @@ app.post('/api/sync', (req, res) => {
 
     let insertedCount = 0;
     const stmt = db.prepare(`
-        INSERT OR IGNORE INTO inspections (mobile_id, category, timestamp, latitude, longitude, violations, officer_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT OR IGNORE INTO inspections (mobile_id, category, timestamp, latitude, longitude, violations, image_data, officer_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     db.serialize(() => {
@@ -29,6 +29,7 @@ app.post('/api/sync', (req, res) => {
                 item.latitude,
                 item.longitude,
                 item.violations,
+                item.image_base64 || null,
                 item.officer_id || 'OFFICER_001',
                 function(err) {
                     if (!err && this.changes > 0) insertedCount++;

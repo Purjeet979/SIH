@@ -18,9 +18,16 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 latitude REAL,
                 longitude REAL,
                 violations TEXT,
+                image_data TEXT,
                 officer_id TEXT
             )
         `);
+        // Upgrade existing table if it doesn't have the column
+        db.run(`ALTER TABLE inspections ADD COLUMN image_data TEXT`, (err) => {
+            if (err) {
+                // Column likely already exists
+            }
+        });
     }
 });
 
