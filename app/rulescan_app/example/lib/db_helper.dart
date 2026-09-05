@@ -18,12 +18,15 @@ class DBHelper {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
-    return await openDatabase(path, version: 2, onCreate: _createDB, onUpgrade: _upgradeDB);
+    return await openDatabase(path, version: 3, onCreate: _createDB, onUpgrade: _upgradeDB);
   }
 
   Future _upgradeDB(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
       await db.execute('ALTER TABLE inspections ADD COLUMN image_path TEXT');
+    }
+    if (oldVersion < 3) {
+      await db.execute('ALTER TABLE inspections ADD COLUMN barcode TEXT');
     }
   }
 
@@ -41,6 +44,7 @@ CREATE TABLE inspections (
   longitude $numType,
   violations $textType,
   image_path TEXT,
+  barcode TEXT,
   synced INTEGER NOT NULL DEFAULT 0
 )
 ''');
@@ -64,28 +68,26 @@ CREATE TABLE inspections (
     return await Geolocator.getCurrentPosition();
   }
 
-  Future<int> insertInspection(String category, String violationsJson, {String? imagePath}) async {
+  Future<int> insertInspection(String category, String violations, {String? imagePath, String? barcode}) async {
     final db = await instance.database;
     
-    // Attempt to get Geotag
     Position? pos;
     try {
       pos = await _determinePosition();
     } catch (e) {
       print("Geotagging failed: $e");
     }
-
-    final data = {
+    
+    return await db.insert('inspections', {
       'category': category,
       'timestamp': DateTime.now().toIso8601String(),
       'latitude': pos?.latitude ?? 0.0,
       'longitude': pos?.longitude ?? 0.0,
-      'violations': violationsJson,
+      'violations': violations,
       'image_path': imagePath,
+      'barcode': barcode,
       'synced': 0
-    };
-
-    return await db.insert('inspections', data);
+    });
   }
 
   Future<List<Map<String, dynamic>>> getUnsyncedInspections() async {

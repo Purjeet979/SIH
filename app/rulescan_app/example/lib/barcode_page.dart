@@ -3,20 +3,17 @@ import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
-import 'review_page.dart';
+import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
+import 'camera_ocr_page.dart';
 
-class CameraOcrPage extends StatefulWidget {
-  final String searchText;
-  final String? barcode;
-
-  const CameraOcrPage({super.key, required this.searchText, this.barcode});
+class BarcodePage extends StatefulWidget {
+  const BarcodePage({super.key});
 
   @override
-  State<CameraOcrPage> createState() => _CameraOcrPageState();
+  State<BarcodePage> createState() => _BarcodePageState();
 }
 
-class _CameraOcrPageState extends State<CameraOcrPage> {
+class _BarcodePageState extends State<BarcodePage> {
   CameraController? _cameraController;
   List<CameraDescription>? _cameras;
   bool _isCameraInitialized = false;
@@ -39,7 +36,7 @@ class _CameraOcrPageState extends State<CameraOcrPage> {
 
       _cameraController = CameraController(
         _cameras!.first,
-        ResolutionPreset.medium, // Reduced to prevent OCR native crash/freeze
+        ResolutionPreset.medium, 
         enableAudio: false,
         imageFormatGroup: ImageFormatGroup.jpeg,
       );
@@ -48,7 +45,7 @@ class _CameraOcrPageState extends State<CameraOcrPage> {
 
       setState(() {
         _isCameraInitialized = true;
-        _status = 'Ready to scan. Point at the label.';
+        _status = 'Ready. Point at a Barcode and Tap Capture.';
       });
     } catch (e) {
       setState(() => _status = 'Camera init failed: $e');
@@ -61,28 +58,36 @@ class _CameraOcrPageState extends State<CameraOcrPage> {
 
     setState(() {
       _isProcessing = true;
-      _status = 'Capturing & Analyzing... Please hold still.';
+      _status = 'Scanning Barcode...';
     });
 
-    String? tempFilePath;
     try {
-      // 1. Take a picture
       final XFile file = await _cameraController!.takePicture();
-      tempFilePath = file.path;
-
-      // 2. Run Google ML Kit Text Recognition (Latin first to prevent model-download crash)
-      final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
-      final inputImage = InputImage.fromFilePath(file.path);
-      final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
       
-      String allText = recognizedText.text;
-      textRecognizer.close();
+      final barcodeScanner = BarcodeScanner();
+      final inputImage = InputImage.fromFilePath(file.path);
+      final List<Barcode> barcodes = await barcodeScanner.processImage(inputImage);
+      
+      String extractedBarcode = '';
+      if (barcodes.isNotEmpty) {
+        extractedBarcode = barcodes.first.displayValue ?? barcodes.first.rawValue ?? '';
+      }
+      barcodeScanner.close();
       
       if (mounted) {
-        // 3. Navigate directly to Review Page
+        if (extractedBarcode.isNotEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Barcode Scanned! Now scan the text label.')),
+          );
+        }
+        
+        // CRITICAL FIX: Dispose camera BEFORE navigating so the next page can initialize it without hardware locks!
+        await _cameraController?.dispose();
+        _cameraController = null;
+        
         Navigator.pushReplacement(
           context, 
-          MaterialPageRoute(builder: (_) => ReviewPage(ocrText: allText, imagePath: tempFilePath, barcode: widget.barcode))
+          MaterialPageRoute(builder: (_) => CameraOcrPage(searchText: '', barcode: extractedBarcode))
         );
       }
     } catch (e) {
@@ -106,7 +111,7 @@ class _CameraOcrPageState extends State<CameraOcrPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Capture Label'),
+        title: const Text('Scan Barcode'),
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
       ),
@@ -118,7 +123,6 @@ class _CameraOcrPageState extends State<CameraOcrPage> {
           else
             const Center(child: CircularProgressIndicator()),
           
-          // Status text overlay
           Positioned(
             top: 16,
             left: 16,
@@ -137,12 +141,11 @@ class _CameraOcrPageState extends State<CameraOcrPage> {
             ),
           ),
 
-          // Loading overlay
           if (_isProcessing)
             Container(
               color: Colors.black54,
               child: const Center(
-                child: CircularProgressIndicator(color: Colors.green),
+                child: CircularProgressIndicator(color: Colors.blue),
               ),
             ),
         ],
@@ -152,7 +155,7 @@ class _CameraOcrPageState extends State<CameraOcrPage> {
           ? FloatingActionButton.large(
               onPressed: _captureAndAnalyze,
               backgroundColor: Colors.white,
-              child: const Icon(Icons.camera_alt, color: Colors.black, size: 40),
+              child: const Icon(Icons.qr_code_scanner, color: Colors.black, size: 40),
             )
           : null,
     );

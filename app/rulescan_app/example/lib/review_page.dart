@@ -5,8 +5,9 @@ import 'fact_extractor.dart';
 class ReviewPage extends StatefulWidget {
   final String ocrText;
   final String? imagePath;
+  final String? barcode;
 
-  const ReviewPage({super.key, required this.ocrText, this.imagePath});
+  const ReviewPage({super.key, required this.ocrText, this.imagePath, this.barcode});
 
   @override
   State<ReviewPage> createState() => _ReviewPageState();
@@ -57,7 +58,7 @@ class _ReviewPageState extends State<ReviewPage> {
     // Generate simple comma-separated string for violations
     String violationsJson = _violations.map((v) => v.ruleId).join(",");
     
-    await DBHelper.instance.insertInspection(_selectedCategory, violationsJson, imagePath: widget.imagePath);
+    await DBHelper.instance.insertInspection(_selectedCategory, violationsJson, imagePath: widget.imagePath, barcode: widget.barcode);
     
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -81,6 +82,15 @@ class _ReviewPageState extends State<ReviewPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                if (widget.barcode != null && widget.barcode!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: Chip(
+                      label: Text('Barcode ID: ${widget.barcode}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      backgroundColor: Colors.blue.shade100,
+                      avatar: const Icon(Icons.qr_code_scanner),
+                    ),
+                  ),
                 const Text(
                   'Extracted Text (OCR)', 
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)

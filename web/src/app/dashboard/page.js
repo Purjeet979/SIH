@@ -45,7 +45,12 @@ export default function DashboardPage() {
             <h1>Compliance overview</h1>
             <p>State Legal Metrology cell &middot; All categories &middot; Live Data</p>
           </div>
-          <span className="demo-tag" style={{background: '#dcfce7', color: '#166534', border: '1px solid #bbf7d0'}}>LIVE SYNC ENABLED</span>
+          <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+            <button onClick={() => window.print()} className="demo-tag" style={{background: '#e0e7ff', color: '#4338ca', border: '1px solid #c7d2fe', cursor: 'pointer'}}>
+              📄 EXPORT AS PDF
+            </button>
+            <span className="demo-tag" style={{background: '#dcfce7', color: '#166534', border: '1px solid #bbf7d0'}}>LIVE SYNC ENABLED</span>
+          </div>
         </div>
 
         <div className="stat-row">
@@ -105,6 +110,11 @@ export default function DashboardPage() {
                       <td className="prod-cell">
                         <div className="pname">Inspection #{insp.mobile_id}</div>
                         <div className="pcat">{insp.category}</div>
+                        {insp.barcode && insp.barcode.trim() !== '' && (
+                          <div className="pcat" style={{color: '#6366f1', marginTop: '4px', fontSize: '11px'}}>
+                            <span style={{fontWeight: 'bold'}}>Barcode:</span> {insp.barcode}
+                          </div>
+                        )}
                       </td>
                       <td>
                         {insp.latitude && insp.longitude 

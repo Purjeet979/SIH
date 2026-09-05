@@ -9,6 +9,9 @@
 **/*.dill
 **/*.db
 *.sqlite3
+**/*.db-journal
+**/*.db-shm
+**/*.db-wal
 
 # Logs and Crash dumps
 *.log

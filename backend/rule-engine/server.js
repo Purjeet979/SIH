@@ -15,8 +15,8 @@ app.post('/api/sync', (req, res) => {
 
     let insertedCount = 0;
     const stmt = db.prepare(`
-        INSERT OR IGNORE INTO inspections (mobile_id, category, timestamp, latitude, longitude, violations, image_data, officer_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT OR IGNORE INTO inspections (mobile_id, category, timestamp, latitude, longitude, violations, image_data, barcode, officer_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     db.serialize(() => {
@@ -30,6 +30,7 @@ app.post('/api/sync', (req, res) => {
                 item.longitude,
                 item.violations,
                 item.image_base64 || null,
+                item.barcode || null,
                 item.officer_id || 'OFFICER_001',
                 function(err) {
                     if (!err && this.changes > 0) insertedCount++;

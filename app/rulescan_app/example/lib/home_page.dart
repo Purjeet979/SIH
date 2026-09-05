@@ -5,11 +5,17 @@ import 'camera_ocr_page.dart';
 import 'history_page.dart';
 import 'sync_service.dart';
 import 'review_page.dart';
+import 'barcode_page.dart';
+import 'package:geolocator/geolocator.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   Future<void> _uploadScreenshot(BuildContext context) async {
+    await Geolocator.checkPermission().then((perm) async {
+      if (perm == LocationPermission.denied) await Geolocator.requestPermission();
+    });
+
     final picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     
@@ -74,11 +80,16 @@ class HomePage extends StatelessWidget {
                 backgroundColor: Colors.green.shade700,
                 padding: const EdgeInsets.symmetric(vertical: 20),
               ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const CameraOcrPage(searchText: '')),
-                );
+              onPressed: () async {
+                await Geolocator.checkPermission().then((perm) async {
+                  if (perm == LocationPermission.denied) await Geolocator.requestPermission();
+                });
+                if (context.mounted) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const CameraOcrPage(searchText: '')),
+                  );
+                }
               },
             ),
             const SizedBox(height: 16),
@@ -90,6 +101,26 @@ class HomePage extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 20),
               ),
               onPressed: () => _uploadScreenshot(context),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.qr_code_scanner, color: Colors.white),
+              label: const Text('SCAN BARCODE', style: TextStyle(color: Colors.white, fontSize: 16)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.purple.shade700,
+                padding: const EdgeInsets.symmetric(vertical: 20),
+              ),
+              onPressed: () async {
+                await Geolocator.checkPermission().then((perm) async {
+                  if (perm == LocationPermission.denied) await Geolocator.requestPermission();
+                });
+                if (context.mounted) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const BarcodePage()),
+                  );
+                }
+              },
             ),
             const SizedBox(height: 16),
             ElevatedButton.icon(

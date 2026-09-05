@@ -34,15 +34,24 @@ Our project is organized as a monorepo containing:
 - **Transformer Script:** Created a Python inference script (`classifier.py`) that uses the Hugging Face `Maverick98/EcommerceClassifier`.
 - **LMPC Mapping:** Added a dictionary to map the model's 400+ generic e-commerce buckets into our required LMPC categories (e.g., `cosmetics_toiletries`, `packaged_food`) using confidence thresholds.
 
+### 5. Media & Offline Evidence Sync
+- **Image Geotagging & Database:** Updated local SQLite DB and App permissions to capture and save base64 encoded photo evidence.
+- **Background API Sync:** Node.js backend seamlessly handles high-payload syncing for field inspections images when internet is restored.
+- **E-Commerce Image Uploads:** Added a "Gallery Upload" option to scan screenshots from Amazon/Flipkart/Blinkit directly through the OCR Rule Engine.
+
+### 6. Product Identification & Reporting
+- **Barcode & QR Scanner:** Integrated Google ML Kit Barcode API. Scanned barcodes automatically map to inspections to identify products.
+- **Instant A4 PDF Reports:** Use `pdf` and `printing` plugins on mobile for 1-click sharing of Compliance/Violation Reports.
+- **Web Dashboard PDF Export:** Dashboard uses `@media print` CSS for lightweight, zero-dependency data exporting.
+
 ---
 
 ## 🚀 To-Do: What Needs to be Implemented Next (Phase 2 & 3)
 
-### Phase 2: Connecting the Dots (Backend & Sync)
-- **Sync API (REST):** Build Node.js/Express routes to receive offline scan data from the Flutter app's SQLite database when network is restored.
-- **Central Database:** Setup PostgreSQL or Firebase to store synced inspections, officer profiles, and rulesets.
+### Phase 8: Advanced Web Dashboard & Admin Capabilities
+- **Analytics Overview:** Build graphical charts on the Next.js dashboard for Total Inspections (Passed vs Failed vs Manual Review).
 - **Authentication:** Implement Firebase Auth / JWT with RBAC (Role-Based Access Control) for Officer vs Admin roles.
-- **Live Dashboard Data:** Connect the Next.js frontend to fetch real inspection data from the backend instead of static data.
+- **Pagination & Filters:** Allow filtering Dashboard data by Date, Category, and Officer ID.
 
 ### Phase 3: Advanced Vision & Rules
 - **Rule 7 Calibration (Computer Vision):** Implement OpenCV logic to measure font sizes (letter height/width) by comparing text bounding boxes against a known reference object (e.g., a coin or ID card).
