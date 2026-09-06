@@ -150,9 +150,8 @@ Documented honestly so nothing gets lost after the hackathon:
 
 | Resource | Link |
 |---|---|
-| Landing page + APK download | *add your hosted Netlify/GitHub Pages link here* |
-| Live dashboard demo | *add your hosted dashboard link here* |
-| Demo video (if any) | *add link here* |
+| Live dashboard demo | *https://kamchalaucoders.netlify.app/* |
+| Demo video | *https://youtu.be/fyHWOhiEd2U* |
 
 ---
 
