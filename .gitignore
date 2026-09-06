@@ -49,6 +49,7 @@ crash*.txt
 **/*$py.class
 **/venv/
 **/.env
+**/env.dart
 
 # OS Files
 .DS_Store
