@@ -15,16 +15,16 @@ class FactExtractor {
       'net_quantity_value': _extractNetQuantity(lowerText, blocks),
       
       // Rule 6(1)(e): MRP
-      'mrp': _extractMRP(blocks) != null,
-      'mrp_value': _extractMRP(blocks),
+      'mrp': _extractMRP(flatText) != null,
+      'mrp_value': _extractMRP(flatText),
       
       // Rule 6(1)(d): Manufacture Date
-      'manufacture_date': _extractDate(blocks, ['mfg', 'pkd', 'packed', 'mfd']) != null,
-      'manufacture_date_value': _extractDate(blocks, ['mfg', 'pkd', 'packed', 'mfd']),
+      'manufacture_date': _extractDate(flatText, ['mfg', 'pkd', 'packed', 'mfd']) != null,
+      'manufacture_date_value': _extractDate(flatText, ['mfg', 'pkd', 'packed', 'mfd']),
       
       // Rule 6(1)(da): Best Before / Use By
-      'best_before_or_use_by': _extractDate(blocks, ['exp', 'expiry', 'best before', 'use by', 'use before']) != null,
-      'best_before_or_use_by_value': _extractDate(blocks, ['exp', 'expiry', 'best before', 'use by', 'use before']),
+      'best_before_or_use_by': _extractDate(flatText, ['exp', 'expiry', 'best before', 'use by', 'use before']) != null,
+      'best_before_or_use_by_value': _extractDate(flatText, ['exp', 'expiry', 'best before', 'use by', 'use before']),
       
       // Rule 6(2): Consumer Care
       'consumer_care_contact': _containsAny(lowerText, ['care', 'feedback', 'complaint', '@', 'toll free', 'call']),
@@ -85,39 +85,13 @@ class FactExtractor {
         .replaceAll('I', '1');
   }
 
-  static String? _extractMRP(List<OcrBlock> blocks) {
-    List<String> keywords = ['mrp', 'rs', '₹', 'inr', 'inclusive of all taxes', 'incl. of all taxes'];
-    
-    for (var block in blocks) {
-      String bTextLower = block.text.toLowerCase();
-      if (_containsAny(bTextLower, keywords)) {
-        
-        // Find price pattern: optional rs/mrp/₹, followed by spaces, followed by digits/letters resembling digits
-        final regExp = RegExp(r'(?:rs\.?|₹|inr|mrp)\s*([0-9OoSsIl]{1,5}(?:\.[0-9OoSsIl]{1,2})?)');
-        final match = regExp.firstMatch(bTextLower);
-        if (match != null) {
-          String normalized = normalizeOcrDigits(match.group(1)!);
-          if (RegExp(r'\d+').hasMatch(normalized)) return normalized;
-        }
-        
-        // If not in the same block, find the closest block to the right or bottom
-        OcrBlock? closest = _findClosestBlock(block, blocks);
-        if (closest != null) {
-          String cText = closest.text.toLowerCase();
-          final match2 = regExp.firstMatch(cText);
-          if (match2 != null) {
-            String normalized = normalizeOcrDigits(match2.group(1)!);
-            if (RegExp(r'\d+').hasMatch(normalized)) return normalized;
-          } else {
-            // if it's just a number block (e.g. "20" or "O.SO")
-            // It should be predominantly number-like characters.
-            if (RegExp(r'^[\s0-9OoSsIl\.\,]+$').hasMatch(cText)) {
-               String normalized = normalizeOcrDigits(cText.trim());
-               if (RegExp(r'\d+').hasMatch(normalized)) return normalized;
-            }
-          }
-        }
-      }
+  static String? _extractMRP(String flatText) {
+    // Allows colons, dots, dashes, and newlines between prefix and amount
+    final regExp = RegExp(r'(?:rs\.?|₹|inr|mrp)[\s\:\.\-]*([0-9OoSsIl]{1,5}(?:\.[0-9OoSsIl]{1,2})?)', caseSensitive: false);
+    final match = regExp.firstMatch(flatText);
+    if (match != null) {
+      String normalized = normalizeOcrDigits(match.group(1)!);
+      if (RegExp(r'\d+').hasMatch(normalized)) return normalized;
     }
     return null;
   }
@@ -137,54 +111,18 @@ class FactExtractor {
     return null;
   }
 
-  static String? _extractDate(List<OcrBlock> blocks, List<String> prefixes) {
-    for (var block in blocks) {
-      String bTextLower = block.text.toLowerCase();
-      if (_containsAny(bTextLower, prefixes)) {
-        // Loose date regex: 01/24, 01/2024, JAN 24, 12-25
-        final dateRegExp = RegExp(r'([0-9OoSsIl]{2}[/\-\.][0-9OoSsIl]{2,4}|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[\s\-\.]*[0-9OoSsIl]{2,4})');
-        
-        // Check in same block
-        final match = dateRegExp.firstMatch(bTextLower);
-        if (match != null) {
-          return normalizeOcrDigits(match.group(0)!);
-        }
-
-        // Check nearest block
-        OcrBlock? closest = _findClosestBlock(block, blocks);
-        if (closest != null) {
-          final closestMatch = dateRegExp.firstMatch(closest.text.toLowerCase());
-          if (closestMatch != null) {
-             return normalizeOcrDigits(closestMatch.group(0)!);
-          }
-        }
+  static String? _extractDate(String flatText, List<String> prefixes) {
+    for (var prefix in prefixes) {
+      // Look for prefix, then up to 25 chars of anything (including spaces/newlines), then the date
+      final regExp = RegExp(
+        prefix + r'[\s\S]{0,25}?([0-9OoSsIl]{2}[/\-\.][0-9OoSsIl]{2,4}|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[\s\-\.]*[0-9OoSsIl]{2,4})',
+        caseSensitive: false,
+      );
+      final match = regExp.firstMatch(flatText);
+      if (match != null) {
+        return normalizeOcrDigits(match.group(1)!);
       }
     }
     return null;
-  }
-
-  static OcrBlock? _findClosestBlock(OcrBlock target, List<OcrBlock> allBlocks) {
-    OcrBlock? closest;
-    double minDistance = double.infinity;
-    
-    for (var b in allBlocks) {
-      if (b == target) continue;
-      
-      // Calculate distance between centers
-      double dx = b.boundingBox.center.dx - target.boundingBox.center.dx;
-      double dy = b.boundingBox.center.dy - target.boundingBox.center.dy;
-      
-      // Only consider blocks that are roughly on the same line (to the right) or immediately below
-      // Lay's case: "Incl. of all taxes" is one block, "Rs 20" is another block right next to it.
-      if (dx > -50 && dy > -20 && dy < 150) {
-        double dist = sqrt(dx*dx + dy*dy);
-        if (dist < minDistance) {
-          minDistance = dist;
-          closest = b;
-        }
-      }
-    }
-    
-    return closest;
   }
 }

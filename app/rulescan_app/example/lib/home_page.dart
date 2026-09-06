@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
@@ -151,21 +153,7 @@ class HomePage extends StatelessWidget {
                       style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.wifi_off, color: Colors.white70, size: 14),
-                          SizedBox(width: 6),
-                          Text('Offline Mode Active', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500)),
-                        ],
-                      ),
-                    ),
+                    const NetworkIndicator(),
                   ],
                 ),
               ),
@@ -344,6 +332,58 @@ class _ActionCard extends StatelessWidget {
             Text(subtitle, style: TextStyle(fontSize: 12, color: AppTheme.textTertiary)),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class NetworkIndicator extends StatefulWidget {
+  const NetworkIndicator({super.key});
+  @override
+  State<NetworkIndicator> createState() => _NetworkIndicatorState();
+}
+
+class _NetworkIndicatorState extends State<NetworkIndicator> {
+  bool _isOnline = false;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _check();
+    _timer = Timer.periodic(const Duration(seconds: 10), (_) => _check());
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _check() async {
+    bool online = false;
+    try {
+      final res = await InternetAddress.lookup('google.com');
+      if (res.isNotEmpty && res[0].rawAddress.isNotEmpty) online = true;
+    } catch (_) {}
+    if (mounted && online != _isOnline) setState(() => _isOnline = online);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: _isOnline ? Colors.green.withValues(alpha: 0.8) : Colors.white.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(_isOnline ? Icons.wifi : Icons.wifi_off, color: Colors.white70, size: 14),
+          const SizedBox(width: 6),
+          Text(_isOnline ? 'Online (Live Sync)' : 'Offline Mode Active', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500)),
+        ],
       ),
     );
   }

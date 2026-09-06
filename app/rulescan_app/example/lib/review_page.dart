@@ -362,12 +362,14 @@ class _ReviewPageState extends State<ReviewPage> {
                     ),
                   );
                 }).toList(),
-                onChanged: (val) {
+                onChanged: (val) async {
                   if (val != null) {
                     setState(() {
                       _selectedCategory = val;
-                      _evaluateRules();
+                      _isLoading = true;
                     });
+                    await _engine.loadRules(val);
+                    _evaluateRules();
                   }
                 },
               ),
