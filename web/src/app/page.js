@@ -66,7 +66,7 @@ export default function LandingPage() {
               </p>
 
               <div className="hero-ctas">
-                <a className="btn-hero-dark" href="/rulescan.apk" download>
+                <a className="btn-hero-dark" href="https://github.com/Purjeet979/SIH/releases/download/v1.0.0/app-release.apk" download>
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M17.523 15.3414C17.054 15.3414 16.674 14.9614 16.674 14.4924C16.674 14.0234 17.054 13.6434 17.523 13.6434C17.992 13.6434 18.372 14.0234 18.372 14.4924C18.372 14.9614 17.992 15.3414 17.523 15.3414ZM6.477 15.3414C6.008 15.3414 5.628 14.9614 5.628 14.4924C5.628 14.0234 6.008 13.6434 6.477 13.6434C6.946 13.6434 7.326 14.0234 7.326 14.4924C7.326 14.9614 6.946 15.3414 6.477 15.3414ZM17.885 10.3954L19.824 7.03642C19.963 6.79542 19.88 6.48842 19.639 6.34942C19.398 6.21042 19.091 6.29342 18.952 6.53442L16.98 9.94942C15.474 9.26442 13.788 8.87442 12 8.87442C10.212 8.87442 8.526 9.26442 7.02 9.94942L5.048 6.53442C4.909 6.29342 4.602 6.21042 4.361 6.34942C4.12 6.48842 4.037 6.79542 4.176 7.03642L6.115 10.3954C2.716 12.2474 0.428 15.7194 0 19.8164H24C23.572 15.7194 21.284 12.2474 17.885 10.3954Z"/>
                   </svg>
@@ -348,7 +348,7 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
-            <a className="btn btn-primary" href="/rulescan.apk" download>
+            <a className="btn btn-primary" href="https://github.com/Purjeet979/SIH/releases/download/v1.0.0/app-release.apk" download>
               Download APK
             </a>
           </div>
