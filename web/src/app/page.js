@@ -213,6 +213,28 @@ export default function LandingPage() {
         </div>
       </div>
 
+      {/* DEMO VIDEO SECTION */}
+      <section id="demo" style={{ padding: '4rem 0', background: 'var(--bg-card)' }}>
+        <div className="wrap" style={{ textAlign: 'center' }}>
+          <div className="section-head">
+            <div className="eyebrow">See it in action</div>
+            <h2>RuleScan Demo</h2>
+            <p>Watch how a field officer uses RuleScan to instantly verify LMPC compliance offline.</p>
+          </div>
+          <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', maxWidth: '1000px', margin: '0 auto', borderRadius: '12px', border: '1px solid var(--border-color)', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}>
+            {/* REPLACE THE SRC URL BELOW WITH YOUR ACTUAL YOUTUBE EMBED LINK */}
+            <iframe 
+              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+              src="https://www.youtube.com/embed/YOUR_VIDEO_ID_HERE" 
+              title="RuleScan Demo Video" 
+              frameBorder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+              allowFullScreen>
+            </iframe>
+          </div>
+        </div>
+      </section>
+
       {/* HOW IT WORKS */}
       <section id="how">
         <div className="wrap">
