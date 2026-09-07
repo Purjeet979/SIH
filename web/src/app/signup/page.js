@@ -10,7 +10,7 @@ export default function SignUpPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [selectedRole, setSelectedRole] = useState('USER');
+  const [selectedRole, setSelectedRole] = useState('EMPLOYEE');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -18,7 +18,6 @@ export default function SignUpPage() {
   const router = useRouter();
 
   const roles = [
-    { value: 'USER', label: 'User', desc: 'View compliance reports & analytics', icon: '👤' },
     { value: 'EMPLOYEE', label: 'Employee (Officer)', desc: 'Create inspections & field scans', icon: '🔍' },
     { value: 'ADMIN', label: 'Admin', desc: 'Full access — manage all data', icon: '⚙️' },
   ];
