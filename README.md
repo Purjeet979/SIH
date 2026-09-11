@@ -1,6 +1,6 @@
-# 🔍 RuleScan — Smart India Hackathon 2026
+# 🔍 RuleScan 
 
-**Team Kamchalau Coders** · Problem Statement `SIH26034`
+**Team Kamchalau Coders** 
 
 > **Tagline:** Scan it. Check it. Prove it.
 > **Vision:** An offline-first compliance assistant that turns packaged-commodity labels into explainable, evidence-backed decisions under the *Legal Metrology (Packaged Commodities) Rules, 2011* — for every packaged commodity, not just food.
