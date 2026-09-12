@@ -190,4 +190,4 @@ npm run dev
 
 ---
 
-<p align="center"><sub>Built for Smart India Hackathon 2026 · Team Kamchalau Coders · SIH26034</sub></p>
+<p align="center"><sub>Built for Smart India Hackathon· Team Kamchalau Coders </sub></p>
